@@ -358,13 +358,30 @@ let VP={};try{VP=JSON.parse(localStorage.getItem(VKEY)||'{}')}catch(e){}
 function esVoices(){try{return speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().startsWith('es'))}catch(e){return[]}}
 function voiceScore(v){const n=v.name.toLowerCase();let s=0;if(/natural|neural/.test(n))s+=50;if(/online/.test(n))s+=30;if(/premium|mejorada|enhanced|siri/.test(n))s+=40;if(/google/.test(n))s+=25;if(/elvira|dalia|helena|ximena|paloma|elena|paulina|m[oó]nica|marisol|camila/.test(n))s+=10;if(/es-(mx|us|419|ar)/i.test(v.lang))s+=3;if(v.localService===false)s+=5;return s}
 function bestVoice(){const vs=esVoices();if(!vs.length)return null;if(VP.name){const v=vs.find(v=>v.name===VP.name);if(v)return v}return vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0]}
-function speak(t,force){return new Promise(res=>{if(!window.speechSynthesis||(!force&&(!S||!S.set.voice)))return res();try{speechSynthesis.cancel();const txt=String(t).replace(/[\p{Extended_Pictographic}️‍]/gu,'').replace(/❓/g,'').trim();if(!txt)return res();const u=new SpeechSynthesisUtterance(txt);const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else u.lang='es-ES';u.rate=VP.rate||1.1;u.pitch=VP.pitch||1.05;let done=false;const fin=()=>{if(!done){done=true;res()}};u.onend=fin;u.onerror=fin;setTimeout(fin,txt.length*110/(u.rate)+2500);speechSynthesis.speak(u)}catch(e){res()}})}
+function speak(t,force){return new Promise(res=>{if(!window.speechSynthesis||(!force&&(!S||!S.set.voice)))return res();try{speechSynthesis.cancel();const txt=String(t).replace(/[\p{Extended_Pictographic}️‍]/gu,'').replace(/❓/g,'').trim();if(!txt)return res();const u=new SpeechSynthesisUtterance(txt);const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else u.lang='es-ES';u.rate=VP.rate||1.1;u.pitch=VP.pitch||1.05;let done=false;const fin=()=>{if(!done){done=true;res()}};u.onstart=()=>musDuck(true);u.onend=()=>{musDuck(false);fin()};u.onerror=()=>{musDuck(false);fin()};setTimeout(fin,txt.length*110/(u.rate)+2500);speechSynthesis.speak(u)}catch(e){res()}})}
 function recGet(){try{return localStorage.getItem(RKEY)}catch(e){return null}}
 let curAudio=null;
 function playDed(){const r=recGet();if(r){try{speechSynthesis&&speechSynthesis.cancel();curAudio&&curAudio.pause();curAudio=new Audio(r);curAudio.play().catch(()=>speak(DED,true));return}catch(e){}}speak(DED,true)}
 function splash(){openOv(`<div class="sheet center"><div style="font-size:90px;margin-top:14vh">💌</div><button class="big go" style="font-size:30px" onclick="dedica()">▶️ Toca para empezar</button></div>`)}
+/* ====== MÚSICA DE FONDO (suave, generada en el navegador) ====== */
+const MUS={on:false,g:null,t:null,next:0,i:0,mi:2};
+const MVOL={baja:.035,media:.07};
+const musVol=()=>MVOL[VP.mvol||'baja'];
+const NF=n=>440*Math.pow(2,(n-69)/12);
+const PROG=[[48,52,55],[45,48,52],[41,45,48],[43,47,50]]; // Do, La menor, Fa, Sol
+const PENTA=[72,74,76,79,81,84,86,88];
+function mNote(f,t,dur,type,vol,att){const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+att);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(MUS.g);o.start(t);o.stop(t+dur+.05)}
+function musStep(i,t){const ch=PROG[Math.floor(i/8)%4];
+ if(i%8===0)ch.forEach(n=>mNote(NF(n+12),t,3.6,'sine',.16,.6));
+ if(i%4===0)mNote(NF(ch[0]-12),t,1.6,'sine',.28,.05);
+ if(i%2===0&&Math.random()<.65){MUS.mi=Math.max(0,Math.min(PENTA.length-1,MUS.mi+pick([-2,-1,-1,1,1,2])));mNote(NF(PENTA[MUS.mi]),t,.9,'triangle',.13,.03)}}
+function musTick(){if(!MUS.on||!AC)return;while(MUS.next<AC.currentTime+.8){musStep(MUS.i,MUS.next);MUS.next+=.42;MUS.i++}}
+function musicStart(){if(VP.music===false||MUS.on)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();if(AC.state==='suspended')AC.resume();MUS.g=AC.createGain();MUS.g.gain.value=musVol();const lp=AC.createBiquadFilter();lp.type='lowpass';lp.frequency.value=1600;MUS.g.connect(lp);lp.connect(AC.destination);MUS.on=true;MUS.next=AC.currentTime+.15;MUS.t=setInterval(musTick,200)}catch(e){}}
+function musicStop(){if(!MUS.on)return;MUS.on=false;clearInterval(MUS.t);try{const g=MUS.g;g.gain.setTargetAtTime(0.0001,AC.currentTime,.2);setTimeout(()=>g.disconnect(),1500)}catch(e){}}
+function musDuck(on){if(MUS.on&&AC)try{MUS.g.gain.setTargetAtTime(on?musVol()*.35:musVol(),AC.currentTime,.15)}catch(e){}}
+document.addEventListener('visibilitychange',()=>{if(document.hidden)musicStop();else if(S||$('.dedi'))musicStart()});
 function goFull(){try{const d=document.documentElement;(d.requestFullscreen||d.webkitRequestFullscreen).call(d).catch?.(()=>{})}catch(e){}}
-function dedica(){openOv(`<div class="sheet center"><div class="dedi"><div class="hearts">❤️ 💛 💙</div><p>¡Este juego es para<br><b>MATEO</b><br>de parte de<br>Papá y Mamá!</p><div class="hearts">❤️</div></div><button class="big" onclick="playDed()">🔊 Escuchar otra vez</button><button class="big go" onclick="goFull();titleScreen()">🎮 ¡A jugar!</button></div>`);playDed()}
+function dedica(){musicStart();openOv(`<div class="sheet center"><div class="dedi"><div class="hearts">❤️ 💛 💙</div><p>¡Este juego es para<br><b>MATEO</b><br>de parte de<br>Papá y Mamá!</p><div class="hearts">❤️</div></div><button class="big" onclick="playDed()">🔊 Escuchar otra vez</button><button class="big go" onclick="goFull();titleScreen()">🎮 ¡A jugar!</button></div>`);playDed()}
 
 /* ====== PREGUNTAS DIDÁCTICAS ====== */
 function grp(f,n){let o='';for(let i=0;i<n;i++){o+=f;if(i%5===4&&i<n-1)o+=' '}return o}
@@ -495,7 +512,7 @@ const topBar=t=>`<div class="top"><h2>${t}</h2><button class="big go" onclick="c
 function titleScreen(){const has=!!load();
  openOv(`<div class="sheet center"><h1 class="logo">Pokémon<br><small>Dino Aventura 🦖</small></h1><p style="font-size:20px">Para Mateo ❤️ de Papá y Mamá</p><div class="hero">${img(696)}${img(25)}${img(4)}</div>${has?'<button class="big go" onclick="cont()">▶️ Continuar</button><br>':''}<button class="big ${has?'':'go'}" onclick="newGame()">🆕 Nueva partida</button></div>`)}
 function fixSave(){S.it=Object.assign({poke:0,super:0,ultra:0,master:0,pocion:0,superpocion:0,caramelo:0,piedra:0},S.it||{});S.box=S.box||[];S.tb=S.tb||{};S.st=Object.assign({ok:0,bad:0,streak:0,best:0},S.st||{});S.set=Object.assign({diff:1,voice:true,sound:true,q:{num:true,let:true,tipo:true,nom:true}},S.set||{});S.team.forEach(m=>{if(m.hp>maxHp(m))m.hp=maxHp(m)})}
-function cont(){S=load();fixSave();closeOv();enterZone(S.zone,{x:1,y:5});toast(`¡Hola de nuevo, ${S.name}! 👋`);if(!S.gift)giveGift()}
+function cont(){musicStart();S=load();fixSave();closeOv();enterZone(S.zone,{x:1,y:5});toast(`¡Hola de nuevo, ${S.name}! 👋`);if(!S.gift)giveGift()}
 function giveGift(){S.gift=1;const l=Math.max(5,...S.team.map(m=>m.lvl));const g=[133,384,9384];g.forEach(id=>{const m=mk(id,l);caught(id);if(S.team.length<6)S.team.push(m);else S.box.unshift(m)});S.it.piedra+=2;save();
  dialog(`<div class="who">🎁</div><p>¡Regalo de Papá y Mamá para ${S.name}! ❤️</p><div class="hero">${g.map(id=>img(id)).join('')}</div><p>Eevee, Rayquaza y Rayquaza Negro<br>+ 💎💎 2 Piedras Evolutivas</p><p style="font-size:.8em">Usa la 💎 en 🎒 Mi equipo para que Eevee evolucione en el que tú elijas.</p>`,[['🎉 ¡Gracias!',closeOv]]);speak(`Regalo de Papá y Mamá: Eevee, Rayquaza y Rayquaza Negro`)}
 let NEW={name:'',av:'🧒'};
@@ -503,7 +520,7 @@ function newGame(){if(load()&&!confirm('¿Empezar de nuevo? Se borrará la parti
  openOv(`<div class="sheet center"><h2>¿Cómo te llamas?</h2><input id="nm" maxlength="12" placeholder="Tu nombre" value="Mateo"><h2>Elige tu entrenador</h2><div class="avs">${['🧒','👦','👧','🧑','🦸','🥷','🧙','🤠'].map(a=>`<button class="av ${a===NEW.av?'sel':''}" onclick="NEW.av='${a}';document.querySelectorAll('.av').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${a}</button>`).join('')}</div><br><button class="big go" onclick="pickStarter()">Siguiente ➡️</button></div>`)}
 function pickStarter(){NEW.name=($('#nm').value||'').trim()||'Entrenador';
  openOv(`<div class="sheet center"><h2>¡Elige tu primer Pokémon!</h2><div class="grid">${STARTERS.map(id=>`<button class="st" onclick="startGame(${id})">${img(id)}<br>${tIcon(D[id][1])} ${D[id][0]}</button>`).join('')}</div></div>`)}
-function startGame(id){
+function startGame(id){musicStart();
  S={v:1,name:NEW.name,avatar:NEW.av,team:[mk(id,5)],box:[],coins:50,it:{poke:5,super:0,ultra:0,master:0,pocion:3,superpocion:0,caramelo:0,piedra:1},gift:1,zone:0,maxZone:0,medals:[],seen:{},caught:{},tb:{},st:{ok:0,bad:0,streak:0,best:0},set:{diff:1,voice:true,sound:true,q:{num:true,let:true,tipo:true,nom:true}},pos:{x:1,y:5}};
  caught(id);enterZone(0,{x:1,y:5});
  dialog(`<div class="who">👴</div><p>¡Hola ${S.name}! Soy el Profesor Oak.</p><p>🌿 Camina por la hierba para encontrar Pokémon.</p><p>🧠 ¡Responde bien las preguntas para atacar!</p><p>🔴 Atrápalos a todos y gana las 🏅 medallas.</p>`,[['🚀 ¡A jugar!',closeOv]]);
@@ -559,6 +576,7 @@ function openSet(){
  const vs=esVoices(),bv=bestVoice();
  h+=`<h2>🗣️ Voz</h2><p style="opacity:.85">Elige la voz que suene mejor y toca ▶️ para probarla.</p><div class="row">${vs.length?vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map((v,i)=>`<button class="sw ${bv&&bv.name===v.name?'on':''}" onclick="VP.name=esVoices().sort((a,b)=>voiceScore(b)-voiceScore(a))[${i}].name;saveVP();openSet();speak('¡Hola Mateo! Así sueno yo.',true)">${v.name.replace(/Microsoft |Google /,'').slice(0,34)}</button>`).join(''):'<span class="chip">Este navegador no tiene voces en español 😕</span>'}</div><div class="row"><button class="sw" onclick="speak('¡Hola Mateo! ¿Cuánto es tres más cuatro?',true)">▶️ Probar voz</button>${[['🐢 Lenta',.9],['🙂 Normal',1.1],['🐇 Rápida',1.3]].map(([l,r])=>`<button class="sw ${(VP.rate||1.1)===r?'on':''}" onclick="VP.rate=${r};saveVP();openSet()">${l}</button>`).join('')}</div>`;
  h+=`<h2>🎙️ Mensaje de Papá y Mamá</h2><p style="opacity:.85">Graben su propia voz diciendo el mensaje y sonará al empezar el juego (en vez de la voz de la máquina).</p><div class="row"><button class="sw ${REC?'on':''}" onclick="toggleRec()">${REC?'⏹️ Parar grabación':'🔴 Grabar (máx. 15 seg)'}</button>${recGet()?'<button class="sw" onclick="playDed()">▶️ Escuchar</button><button class="sw" onclick="delRec()">🗑️ Borrar</button>':'<span class="chip">Sin grabación: se usa la voz de arriba</span>'}</div>`;
+ h+=`<h2>🎵 Música de fondo</h2><div class="row"><button class="sw ${VP.music!==false?'on':''}" onclick="VP.music=VP.music===false;saveVP();VP.music?musicStart():musicStop();openSet()">${VP.music!==false?'🎵 Encendida':'🔇 Apagada'}</button>${[['baja','🤫 Bajita'],['media','🔉 Media']].map(([k,l])=>`<button class="sw ${(VP.mvol||'baja')===k?'on':''}" onclick="VP.mvol='${k}';saveVP();musDuck(false);openSet()">${l}</button>`).join('')}</div>`;
  h+=`<h2>Sonido</h2><div class="row">${sw(s.voice,'S.set.voice=!S.set.voice','🗣️ Voz que lee')}${sw(s.sound,'S.set.sound=!S.set.sound','🔊 Efectos')}</div>`;
  h+=`<h2>Partida</h2><div class="row"><span class="chip">👤 ${S.name} ${S.avatar}</span><button class="sw" onclick="resetGame()">🗑️ Borrar partida</button></div>`;
  h+=`<p style="opacity:.8">💾 La partida se guarda sola en este navegador.</p>`;
