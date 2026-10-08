@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#1d2b53">
+<meta name="robots" content="noindex,nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pokémon Mateo">
+<title>Pokémon Dino Aventura</title>
+<style>
+:root{--bg:#1d2b53;--ink:#223;--yellow:#ffcb05;--green:#3cb44b;--zbg:#a8e27d}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--ink);overscroll-behavior:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:none;color:var(--ink)}
+#app{max-width:900px;margin:0 auto;height:100vh;height:100dvh;display:flex;flex-direction:column;padding:6px 8px 8px;gap:6px}
+#hud{display:flex;flex-wrap:wrap;align-items:center;gap:6px;color:#fff;font-weight:bold}
+#zname{flex:1 1 100%;font-size:clamp(16px,4.4vw,22px);text-align:center;text-shadow:0 2px 0 #0006}
+.chip{background:#fff2;border-radius:20px;padding:4px 10px;font-size:clamp(14px,3.8vw,18px)}
+.hb{background:#fff;border-radius:12px;padding:6px 9px;font-size:clamp(16px,4.2vw,20px);box-shadow:0 3px 0 #0005;font-weight:bold}
+.hb:active{transform:translateY(2px);box-shadow:0 1px 0 #0005}
+#hudbtns{display:flex;gap:6px;margin-left:auto}
+#mapwrap{flex:1 1 auto;min-height:0;display:flex;align-items:center;justify-content:center;position:relative;container-type:size}
+#map{width:100%;height:100%;max-width:calc(100cqh * 1.9);max-height:calc(100cqw * 1.25);margin:auto;display:grid;grid-template-columns:repeat(13,1fr);grid-template-rows:repeat(11,1fr);container-type:size;border-radius:14px;overflow:hidden;border:4px solid #0004;box-shadow:0 6px 20px #0006;background:var(--zbg)}
+.c{display:flex;align-items:center;justify-content:center;font-size:min(5.6cqw,7.6cqh);line-height:1;position:relative;background:var(--zbg);overflow:visible;min-width:0;min-height:0}
+.t1{background:linear-gradient(rgba(0,100,0,.30),rgba(0,100,0,.30)),var(--zbg)}
+.t3{background:linear-gradient(rgba(255,255,255,.40),rgba(255,255,255,.40)),var(--zbg)}
+.gr{font-size:.85em;opacity:.9}
+.pl{font-size:1.15em;filter:drop-shadow(0 2px 1px rgba(0,0,0,.45));animation:bob 1s infinite}
+.fol{width:115%;height:115%;object-fit:contain;image-rendering:pixelated}
+.c .ok,.c .ex{position:absolute;right:-2%;top:-6%;font-size:.42em}
+.c .ex{animation:bob .8s infinite}
+@keyframes bob{50%{transform:translateY(-8%)}}
+#map.flash{animation:mflash .6s steps(2) 1}
+@keyframes mflash{0%,100%{filter:none}50%{filter:invert(1)}}
+#toast{position:absolute;left:50%;top:10px;transform:translateX(-50%);background:#fff;border-radius:14px;padding:8px 14px;font-weight:bold;font-size:clamp(16px,4.4vw,22px);box-shadow:0 4px 0 #0004;opacity:0;pointer-events:none;transition:opacity .25s;max-width:92%;text-align:center;z-index:3}
+#toast.on{opacity:1}
+#pad{display:grid;grid-template-columns:repeat(3,min(26vw,96px));grid-template-rows:repeat(2,min(15vw,62px));gap:6px;justify-content:center}
+#pad button{font-size:28px;border-radius:16px;background:#fff;box-shadow:0 4px 0 #0005;touch-action:none}
+#pad button:active{transform:translateY(3px);box-shadow:0 1px 0 #0005;background:var(--yellow)}
+#ov{position:fixed;inset:0;z-index:10;background:rgba(18,28,70,.97);overflow:auto}
+#ov[hidden]{display:none}
+#ov.bov{background:#000;overflow:hidden}
+.sheet{max-width:860px;margin:0 auto;padding:14px 12px 40px;color:#fff}
+.sheet h2{margin:10px 0 8px;font-size:clamp(20px,5.5vw,28px)}
+.center{text-align:center}
+.top{display:flex;align-items:center;gap:8px;position:sticky;top:0;background:rgba(18,28,70,.97);padding:6px 0;z-index:2}
+.top h2{flex:1;margin:0}
+.big{font-size:clamp(18px,4.8vw,26px);padding:14px 10px;border-radius:16px;background:#fff;box-shadow:0 4px 0 #0005;font-weight:bold;color:var(--ink);display:inline-block;margin:6px}
+.big:active{transform:translateY(3px);box-shadow:0 1px 0 #0005}
+.big:disabled{opacity:.45}
+.go{background:var(--yellow)}
+.logo{font-size:clamp(40px,12vw,72px);color:var(--yellow);-webkit-text-stroke:2px #2a4b9b;text-shadow:0 5px 0 #2a4b9b;margin:20px 0 6px;line-height:1}
+.logo small{font-size:.55em;color:#fff;-webkit-text-stroke:1px #2a4b9b}
+.hero{display:flex;justify-content:center;align-items:flex-end;gap:4px;margin:10px 0}
+.hero img{width:min(30vw,170px);filter:drop-shadow(0 6px 4px #0006)}
+input#nm{font-size:26px;padding:10px 14px;border-radius:14px;border:none;width:min(90%,340px);text-align:center;font-family:inherit}
+.avs{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.av{font-size:44px;background:#fff3;border-radius:16px;padding:6px 10px;border:3px solid transparent}
+.av.sel{border-color:var(--yellow);background:#fff6}
+.grid{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(min(30%,150px),1fr))}
+.st{background:#fff;color:var(--ink);border-radius:18px;padding:8px;text-align:center;font-weight:bold;font-size:20px;box-shadow:0 4px 0 #0005}
+.st img{width:100%;max-width:min(120px,14dvh);aspect-ratio:1;object-fit:contain}.st{font-size:clamp(13px,3.6vw,20px);padding:6px 4px}
+.st:active{transform:translateY(3px)}
+.mc{background:#fff;color:var(--ink);border-radius:16px;padding:8px;display:flex;align-items:center;gap:10px;margin-bottom:8px;box-shadow:0 3px 0 #0004}
+.mc img,.mc .imgfb{width:76px;height:76px;object-fit:contain;flex:none;font-size:48px;text-align:center}
+.mi{flex:1;min-width:0;font-size:18px}
+.mb{display:flex;flex-direction:column;gap:6px}
+.mb button{font-size:18px;padding:8px 10px;border-radius:12px;background:var(--yellow);box-shadow:0 3px 0 #0004;font-weight:bold}
+.tag{font-size:14px;background:#eee;border-radius:10px;padding:4px 8px}
+.hp{height:12px;background:#ddd;border-radius:8px;overflow:hidden;margin-top:4px}
+.hp i{display:block;height:100%;background:var(--green);transition:width .5s,background .5s}
+.xp{height:6px}.xp i{background:#3b9cff}
+.dexg{display:grid;gap:6px;grid-template-columns:repeat(auto-fill,minmax(76px,1fr))}
+.dx{background:#fff2;border-radius:12px;text-align:center;font-size:12px;padding:4px 2px;color:#fff;min-height:96px}
+.dx img{width:68px;height:68px;image-rendering:pixelated;object-fit:contain}
+.dx.seen img{filter:brightness(0) opacity(.6)}
+.dx.unk .qq{font-size:40px;line-height:68px;opacity:.4}
+.dx.caught{background:#fff;color:var(--ink)}
+.dexinfo{background:#fff;color:var(--ink);border-radius:16px;padding:10px;display:flex;gap:10px;align-items:center;margin-bottom:10px;font-size:18px}
+.dexinfo img{width:110px;height:110px;object-fit:contain}
+.meds{display:grid;gap:8px;grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+.med{background:#fff2;border-radius:16px;padding:8px;text-align:center;font-size:14px}
+.med b{display:block;font-size:44px}
+.med.got{background:#fff;color:var(--ink)}
+.med.lock b{filter:grayscale(1) opacity(.35)}
+.zb{display:block;width:100%;text-align:left;margin:6px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0;font-size:20px}
+.sw{font-size:18px;padding:10px 14px;border-radius:14px;background:#fff3;color:#fff;font-weight:bold}
+.sw.on{background:var(--yellow);color:var(--ink)}
+.shopi{display:flex;align-items:center;gap:10px;background:#fff;color:var(--ink);border-radius:16px;padding:10px;margin-bottom:8px;font-size:20px;font-weight:bold}
+.shopi .e{font-size:40px}.shopi .n{flex:1}
+.shopi button{font-size:20px;padding:10px 14px;border-radius:12px;background:var(--yellow);box-shadow:0 3px 0 #0004;font-weight:bold}
+.dlg{color:var(--ink);max-width:520px;margin:12vh auto 0;background:#fff;border-radius:22px;padding:18px;text-align:center;font-size:clamp(18px,4.8vw,24px);font-weight:bold;box-shadow:0 8px 0 #0005}
+.dlg .who{font-size:70px;line-height:1}
+.dlg p{margin:10px 0}
+.dlg .big{border:3px solid #0002}
+/* Batalla */
+.battle{position:fixed;inset:0;max-width:900px;margin:0 auto;display:flex;flex-direction:column;padding:8px;background:linear-gradient(#bfe6ff 0,#e8f6ff 42%,var(--zbg) 42%,var(--zbg) 100%)}
+.bfield{flex:1 1 auto;min-height:120px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;align-items:center;gap:4px}
+.mon{display:flex;justify-content:center;align-items:flex-end;height:100%;position:relative}
+.mon img{height:min(32vw,20dvh);width:auto;max-width:100%;object-fit:contain;filter:drop-shadow(0 8px 4px rgba(0,0,0,.3))}
+.mon .imgfb{font-size:min(22vw,15dvh)}
+#pmon img{transform:scaleX(-1)}
+.mon::after{content:"";position:absolute;bottom:-4px;left:15%;right:15%;height:16px;border-radius:50%;background:#0002;z-index:-1}
+.card{background:#fffe;border-radius:14px;padding:8px 10px;font-weight:bold;box-shadow:0 3px 0 #0003;font-size:clamp(14px,3.8vw,20px);align-self:center}
+.card small{font-weight:normal}
+.balls{font-size:12px;letter-spacing:1px}
+.msg{background:#fff;border:4px solid #334;border-radius:14px;padding:8px 12px;font-size:clamp(17px,4.6vw,24px);min-height:56px;margin:6px 0;font-weight:bold;display:flex;align-items:center}
+.panel{display:grid;gap:8px;grid-template-columns:repeat(2,1fr);max-height:60dvh;overflow:auto;padding-bottom:4px}
+.panel .big{margin:0}
+.panel .wide{grid-column:1/-1}
+.b-atk{background:#ff8f6b}.b-cat{background:#fff}.b-bag{background:#ffd76b}.b-sw{background:#8fd3ff}.b-run{background:#d6d6d6}
+.mv small{display:block;font-size:.65em;font-weight:normal}
+.q{grid-column:1/-1;background:#fff;border-radius:16px;padding:8px;text-align:center}
+.qtext{font-size:clamp(22px,6.4vw,36px);font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.spk{font-size:24px;background:#eef;border-radius:12px;padding:4px 8px}
+.qico{font-size:clamp(24px,7vw,40px);margin:4px 0;line-height:1.25;word-break:break-word}
+.qico .fade{opacity:.22}
+.bigemo{font-size:clamp(50px,14vw,80px)}
+.word{font-size:clamp(28px,8vw,44px);letter-spacing:6px;font-weight:bold}
+.qimg{height:min(30vw,17dvh)}
+.opts{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));margin-top:6px}
+.opt{font-size:clamp(26px,7.5vw,42px);padding:12px 4px;border-radius:16px;background:#ffe27a;box-shadow:0 5px 0 #c9a200;font-weight:bold}
+.opt.sm{font-size:clamp(16px,4.6vw,24px)}
+.opt:active{transform:translateY(3px);box-shadow:0 2px 0 #c9a200}
+.opt.right{background:#6fdc6f;box-shadow:0 5px 0 #2f9a2f}
+.opt.wrong{background:#ff8a8a;box-shadow:0 5px 0 #c33;animation:shake .4s}
+.hit{animation:shake .45s}
+.hurt img{animation:blink .5s steps(2) 2}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+@keyframes blink{50%{opacity:.1}}
+.lunge-r img{animation:lr .35s}
+.lunge-l img{animation:ll .35s}
+#pmon.lunge-r img{animation:lrp .35s}
+@keyframes lr{50%{transform:translate(18%,-12%)}}
+@keyframes lrp{0%,100%{transform:scaleX(-1)}50%{transform:scaleX(-1) translate(-18%,-12%)}}
+@keyframes ll{50%{transform:translate(-18%,12%)}}
+.evo img{animation:evo 1.6s}
+@keyframes evo{0%,100%{filter:none}20%,60%{filter:brightness(4) saturate(0)}40%,80%{filter:brightness(1)}}
+.ballshake{font-size:min(18vw,12dvh);animation:roll .5s 3}
+@keyframes roll{25%{transform:rotate(-25deg)}75%{transform:rotate(25deg)}}
+.faint img{transition:transform .6s,opacity .6s;transform:translateY(40%);opacity:0}
+.dedi{background:#fff;color:var(--ink);border-radius:24px;max-width:520px;margin:8vh auto 14px;padding:20px;font-size:clamp(24px,7vw,36px);font-weight:bold;box-shadow:0 8px 0 #0005}.dedi b{font-size:1.6em;color:#e3350d}.hearts{font-size:44px;animation:bob 1s infinite}
+.story{font-size:clamp(22px,6vw,32px);font-weight:bold;line-height:1.4}.evb{padding:6px;font-size:16px}.evb img{width:72px;height:72px;image-rendering:pixelated}.panel:has(.evb){grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+/* Celular acostado: mapa a la izquierda, flechas a la derecha; batalla en dos columnas */
+@media (orientation:landscape) and (max-height:520px){
+ #app{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto 1fr;padding:4px 8px;gap:4px 10px}
+ #hud{grid-column:1/-1;flex-wrap:nowrap}#zname{flex:1 1 auto;text-align:left;font-size:16px}
+ .chip{font-size:14px;padding:2px 8px}.hb{font-size:16px;padding:4px 7px}
+ #pad{align-self:center;grid-template-columns:repeat(3,58px);grid-template-rows:repeat(2,54px)}
+ .battle{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr auto;gap:0 8px;padding:6px}
+ .bfield{grid-row:1/3;min-height:0}
+ .mon img{height:min(18vw,30dvh)}
+ .msg{grid-column:2;align-self:start;font-size:16px;min-height:44px;margin:0 0 6px}
+ .panel{grid-column:2;grid-row:2;max-height:72dvh}
+ .card{font-size:14px;padding:5px 8px}
+ .big{font-size:17px;padding:9px 6px}
+ .qtext{font-size:22px}.qico{font-size:24px}.opt{font-size:24px;padding:8px 4px}.bigemo{font-size:44px}.word{font-size:24px}.qimg{height:22dvh}
+ .dedi{margin:2vh auto 8px;font-size:22px;padding:10px}.dedi p{margin:4px}.hearts{font-size:26px}
+ .logo{font-size:40px;margin:6px 0}.hero img{width:min(16vw,110px)}
+ .dlg{margin:3vh auto 0;font-size:18px;padding:10px}.dlg .who{font-size:44px}
+ .grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+}
+@media (min-width:700px) and (min-height:521px){#pad{grid-template-columns:repeat(3,64px);grid-template-rows:repeat(2,50px)}}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hud">
+    <div id="zname">🌱</div>
+    <span class="chip">🪙 <span id="coins">0</span></span>
+    <span class="chip">🏅 <span id="med">0</span></span>
+    <div id="hudbtns">
+      <button class="hb" onclick="openTeam()">🎒</button>
+      <button class="hb" onclick="openDex()">📖</button>
+      <button class="hb" onclick="openMedals()">🗺️</button>
+      <button class="hb" onclick="openSet()">⚙️</button>
+    </div>
+  </div>
+  <div id="mapwrap"><div id="map"></div><div id="toast"></div></div>
+  <div id="pad">
+    <span></span><button data-d="0,-1">▲</button><span></span>
+    <button data-d="-1,0">◀</button><button data-d="0,1">▼</button><button data-d="1,0">▶</button>
+  </div>
+</div>
+<div id="ov" hidden></div>
+
+<script>
+'use strict';
+/* ====== DATOS ====== */
+const KEY='pokedino_v1', W=13, H=11;
+// id: [nombre, tipo, nivelDeFuerza(0-5), nivelEvolución, evolucionaA]
+const D={
+1:['Bulbasaur','planta',1,16,2],2:['Ivysaur','planta',2,32,3],3:['Venusaur','planta',3],
+4:['Charmander','fuego',1,16,5],5:['Charmeleon','fuego',2,36,6],6:['Charizard','fuego',3],
+7:['Squirtle','agua',1,16,8],8:['Wartortle','agua',2,36,9],9:['Blastoise','agua',3],
+10:['Caterpie','bicho',0,7,11],11:['Metapod','bicho',1,10,12],12:['Butterfree','bicho',2],
+13:['Weedle','bicho',0,7,14],14:['Kakuna','bicho',1,10,15],15:['Beedrill','bicho',2],
+16:['Pidgey','volador',0,18,17],17:['Pidgeotto','volador',1,36,18],18:['Pidgeot','volador',3],
+19:['Rattata','normal',0,20,20],20:['Raticate','normal',2],
+23:['Ekans','veneno',1,22,24],24:['Arbok','veneno',2],
+25:['Pikachu','electrico',1,30,26],26:['Raichu','electrico',3],
+27:['Sandshrew','tierra',1,22,28],28:['Sandslash','tierra',2],
+35:['Clefairy','hada',1,30,36],36:['Clefable','hada',3],
+37:['Vulpix','fuego',1,30,38],38:['Ninetales','fuego',3],
+39:['Jigglypuff','hada',0,30,40],40:['Wigglytuff','hada',2],
+41:['Zubat','veneno',0,22,42],42:['Golbat','veneno',2],
+43:['Oddish','planta',0,21,44],44:['Gloom','planta',1,32,45],45:['Vileplume','planta',3],
+50:['Diglett','tierra',1,26,51],51:['Dugtrio','tierra',2],
+54:['Psyduck','agua',1,33,55],55:['Golduck','agua',2],
+58:['Growlithe','fuego',1,32,59],59:['Arcanine','fuego',3],
+63:['Abra','psiquico',1,16,64],64:['Kadabra','psiquico',2,36,65],65:['Alakazam','psiquico',3],
+66:['Machop','lucha',1,28,67],67:['Machoke','lucha',2,40,68],68:['Machamp','lucha',3],
+69:['Bellsprout','planta',0,21,70],70:['Weepinbell','planta',1,32,71],71:['Victreebel','planta',3],
+74:['Geodude','roca',1,25,75],75:['Graveler','roca',2,40,76],76:['Golem','roca',3],
+77:['Ponyta','fuego',1,40,78],78:['Rapidash','fuego',2],
+81:['Magnemite','electrico',1,30,82],82:['Magneton','electrico',2],
+86:['Seel','agua',1,34,87],87:['Dewgong','hielo',2],
+88:['Grimer','veneno',1,38,89],89:['Muk','veneno',2],
+90:['Shellder','agua',1,30,91],91:['Cloyster','hielo',3],
+92:['Gastly','fantasma',1,25,93],93:['Haunter','fantasma',2,38,94],94:['Gengar','fantasma',3],
+95:['Onix','roca',2],
+98:['Krabby','agua',1,28,99],99:['Kingler','agua',2],
+100:['Voltorb','electrico',1,30,101],101:['Electrode','electrico',2],
+102:['Exeggcute','planta',1,30,103],103:['Exeggutor','planta',3],
+104:['Cubone','tierra',1,28,105],105:['Marowak','tierra',2],
+109:['Koffing','veneno',1,35,110],110:['Weezing','veneno',2],
+111:['Rhyhorn','tierra',2,42,112],112:['Rhydon','tierra',3],
+116:['Horsea','agua',1,32,117],117:['Seadra','agua',2],
+120:['Staryu','agua',1,30,121],121:['Starmie','agua',3],
+124:['Jynx','hielo',2],125:['Electabuzz','electrico',2],126:['Magmar','fuego',2],
+129:['Magikarp','agua',0,20,130],130:['Gyarados','agua',3],
+131:['Lapras','hielo',3],
+133:['Eevee','normal',1,25,[134,135,136,196,197,470,471,700]],
+134:['Vaporeon','agua',3],135:['Jolteon','electrico',3],136:['Flareon','fuego',3],
+138:['Omanyte','roca',1,40,139],139:['Omastar','roca',3],
+140:['Kabuto','roca',1,40,141],141:['Kabutops','roca',3],
+142:['Aerodactyl','roca',3],143:['Snorlax','normal',3],
+144:['Articuno','hielo',5],145:['Zapdos','electrico',5],146:['Moltres','fuego',5],
+147:['Dratini','dragon',1,30,148],148:['Dragonair','dragon',2,55,149],149:['Dragonite','dragon',4],
+150:['Mewtwo','psiquico',5],151:['Mew','psiquico',5],
+158:['Totodile','agua',1,18,159],159:['Croconaw','agua',2,30,160],160:['Feraligatr','agua',3],
+179:['Mareep','electrico',0,15,180],180:['Flaaffy','electrico',1,30,181],181:['Ampharos','electrico',3],
+194:['Wooper','agua',0,20,195],195:['Quagsire','agua',2],
+196:['Espeon','psiquico',3],197:['Umbreon','siniestro',3],
+215:['Sneasel','siniestro',2],
+218:['Slugma','fuego',1,38,219],219:['Magcargo','fuego',2],
+220:['Swinub','hielo',1,33,221],221:['Piloswine','hielo',2],
+246:['Larvitar','roca',1,30,247],247:['Pupitar','roca',2,55,248],248:['Tyranitar','roca',4],
+249:['Lugia','psiquico',5],250:['Ho-Oh','fuego',5],
+252:['Treecko','planta',1,16,253],253:['Grovyle','planta',2,36,254],254:['Sceptile','planta',3],
+258:['Mudkip','agua',1,16,259],259:['Marshtomp','agua',2,36,260],260:['Swampert','agua',3],
+322:['Numel','fuego',1,33,323],323:['Camerupt','fuego',2],
+328:['Trapinch','tierra',1,35,329],329:['Vibrava','dragon',2,45,330],330:['Flygon','dragon',3],
+345:['Lileep','roca',1,40,346],346:['Cradily','roca',3],
+347:['Anorith','roca',1,40,348],348:['Armaldo','roca',3],
+357:['Tropius','planta',2],
+361:['Snorunt','hielo',1,42,362],362:['Glalie','hielo',2],
+371:['Bagon','dragon',1,30,372],372:['Shelgon','dragon',2,50,373],373:['Salamence','dragon',4],
+382:['Kyogre','agua',5],383:['Groudon','tierra',5],384:['Rayquaza','dragon',5],
+403:['Shinx','electrico',0,15,404],404:['Luxio','electrico',1,30,405],405:['Luxray','electrico',3],
+408:['Cranidos','roca',1,30,409],409:['Rampardos','roca',3],
+410:['Shieldon','acero',1,30,411],411:['Bastiodon','acero',3],
+443:['Gible','dragon',1,24,444],444:['Gabite','dragon',2,48,445],445:['Garchomp','dragon',4],
+470:['Leafeon','planta',3],471:['Glaceon','hielo',3],
+566:['Archen','roca',1,37,567],567:['Archeops','roca',3],
+610:['Axew','dragon',1,38,611],611:['Fraxure','dragon',2,48,612],612:['Haxorus','dragon',4],
+621:['Druddigon','dragon',3],
+696:['Tyrunt','roca',1,39,697],697:['Tyrantrum','dragon',4],
+698:['Amaura','hielo',1,39,699],699:['Aurorus','hielo',3],
+700:['Sylveon','hada',3],
+880:['Dracozolt','electrico',3],881:['Arctozolt','hielo',3],882:['Dracovish','agua',3],883:['Arctovish','hielo',3],
+9384:['Rayquaza Negro','dragon',5]
+};
+const SHINY={9384:384};const num=id=>SHINY[id]||id;
+const IDS=Object.keys(D).map(Number).sort((a,b)=>num(a)-num(b)||a-b);
+const LEGENDS=IDS.filter(i=>D[i][2]===5);
+const STRONG=IDS.filter(i=>D[i][2]>=3&&D[i][2]<=4);
+const STARTERS=[4,1,7,25,158,696,133,384,9384];const MAXZ=49;
+
+const TY={normal:['⚪','Normal'],fuego:['🔥','Fuego'],agua:['💧','Agua'],planta:['🌿','Planta'],electrico:['⚡','Eléctrico'],roca:['🪨','Roca'],tierra:['⛰️','Tierra'],hielo:['❄️','Hielo'],dragon:['🐉','Dragón'],psiquico:['🔮','Psíquico'],fantasma:['👻','Fantasma'],lucha:['🥊','Lucha'],volador:['🪶','Volador'],bicho:['🐛','Bicho'],veneno:['☠️','Veneno'],hada:['🧚','Hada'],acero:['⚙️','Acero'],siniestro:['🌑','Siniestro']};
+const SE={fuego:'planta bicho hielo acero',agua:'fuego roca tierra',planta:'agua roca tierra',electrico:'agua volador',roca:'fuego hielo volador bicho',tierra:'fuego electrico roca veneno acero',hielo:'planta tierra volador dragon',dragon:'dragon',psiquico:'lucha veneno',fantasma:'psiquico fantasma',lucha:'normal roca hielo acero siniestro',volador:'planta lucha bicho',bicho:'planta psiquico siniestro',veneno:'planta hada',hada:'lucha dragon siniestro',acero:'hielo roca hada',siniestro:'psiquico fantasma',normal:''};
+const NV={fuego:'agua roca fuego dragon',agua:'agua planta dragon',planta:'fuego planta volador bicho veneno dragon acero',electrico:'planta electrico dragon tierra',roca:'lucha tierra acero',tierra:'planta bicho volador',hielo:'fuego agua hielo acero',dragon:'acero hada',psiquico:'psiquico acero siniestro',fantasma:'siniestro normal',lucha:'volador psiquico bicho veneno hada fantasma',volador:'electrico roca acero',bicho:'fuego lucha volador fantasma acero hada veneno',veneno:'veneno tierra roca fantasma acero',hada:'fuego veneno acero',acero:'fuego agua electrico acero',siniestro:'lucha siniestro hada',normal:'roca acero fantasma'};
+const MV={normal:['Placaje','Golpe Cuerpo','Hiperrayo'],fuego:['Ascuas','Lanzallamas','Llamarada'],agua:['Pistola Agua','Surf','Hidrobomba'],planta:['Látigo Cepa','Hoja Afilada','Rayo Solar'],electrico:['Impactrueno','Rayo','Trueno'],roca:['Lanzarrocas','Avalancha','Roca Afilada'],tierra:['Bofetón Lodo','Excavar','Terremoto'],hielo:['Nieve Polvo','Rayo Hielo','Ventisca'],dragon:['Furia Dragón','Garra Dragón','Enfado'],psiquico:['Confusión','Psicorrayo','Psíquico'],fantasma:['Lengüetazo','Puño Sombra','Bola Sombra'],lucha:['Golpe Kárate','Demolición','A Bocajarro'],volador:['Picotazo','Ataque Ala','Pájaro Osado'],bicho:['Picadura','Tijera X','Zumbido'],veneno:['Ácido','Bomba Lodo','Lanzamugre'],hada:['Viento Feérico','Brillo Mágico','Fuerza Lunar'],acero:['Garra Metal','Cabeza de Hierro','Foco Resplandor'],siniestro:['Mordisco','Triturar','Pulso Umbrío']};
+
+const ZONES=[
+{n:'Pradera Inicial',i:'🌱',bg:'#a8e27d',g:'🌿',o:['🌳','🌳','🌳','🪨','🌻'],pool:[16,19,10,13,43,39,69,133],rare:[25,133,700],lv:[2,5],L:{n:'Brock',e:'🧔',t:[[74,6],[95,8]]},m:'🪨',mn:'Medalla Roca'},
+{n:'Bosque Verde',i:'🌲',bg:'#7cc463',g:'🌿',o:['🌲','🌲','🌳','🍄'],pool:[10,13,69,43,252,102,16,63,133],rare:[25,1,133,470],lv:[5,9],L:{n:'Erika',e:'👩',t:[[69,10],[44,11],[1,12]]},m:'🌸',mn:'Medalla Arcoíris'},
+{n:'Cueva Fósil',i:'🦴',bg:'#c2ad8f',g:'🦴',o:['🪨','🪨','⛰️','💎'],pool:[41,74,140,138,408,410,104,50,66],rare:[142,95],lv:[8,13],L:{n:'Roark',e:'👷',t:[[74,13],[408,14],[142,15]]},m:'🦴',mn:'Medalla Fósil'},
+{n:'Playa Azul',i:'🏖️',bg:'#f3dc95',g:'🐚',o:['🌴','🌴','🌊','🪨'],pool:[54,98,120,90,116,129,7,158,194,258],rare:[131,147,134,133],lv:[12,17],L:{n:'Misty',e:'👧',t:[[120,17],[54,17],[121,19]]},m:'💧',mn:'Medalla Cascada'},
+{n:'Selva Jurásica',i:'🦕',bg:'#64ad4f',g:'🌿',o:['🌴','🌴','🦕','🌋','🥚'],pool:[696,698,566,357,252,345,347,1,102,408],rare:[142,880,882,881,883,384],lv:[15,21],L:{n:'Grant',e:'🧗',t:[[698,21],[696,22],[142,23]]},m:'🦖',mn:'Medalla Jurásica'},
+{n:'Pantano Niebla',i:'🐸',bg:'#88a878',g:'🌾',o:['🌳','🪵','🍄','🌳'],pool:[92,194,23,109,88,43,258,41],rare:[133,143,196,197],lv:[18,24],L:{n:'Morty',e:'🧙',t:[[92,24],[93,25],[94,27]]},m:'👻',mn:'Medalla Niebla'},
+{n:'Montaña Eléctrica',i:'⚡',bg:'#e9e48a',g:'🌾',o:['🗼','🪨','🌳','🔋'],pool:[25,100,81,179,403,125],rare:[145,135],lv:[22,28],L:{n:'Lt. Surge',e:'💂',t:[[100,28],[181,29],[26,31]]},m:'⚡',mn:'Medalla Trueno'},
+{n:'Volcán Fuego',i:'🌋',bg:'#eaa47e',g:'♨️',o:['🌋','🪨','🪨'],pool:[4,37,58,77,218,322,126,246],rare:[146,136],lv:[26,32],L:{n:'Blaine',e:'👴',t:[[59,32],[126,33],[78,34],[6,35]]},m:'🔥',mn:'Medalla Volcán'},
+{n:'Desierto Seco',i:'🏜️',bg:'#efd08a',g:'💨',o:['🌵','🌵','🪨','🦴'],pool:[27,50,328,104,443,246,74,111],rare:[383],lv:[30,36],L:{n:'Giovanni',e:'🕴️',t:[[51,37],[105,38],[112,40]]},m:'🌍',mn:'Medalla Tierra'},
+{n:'Montaña Nevada',i:'❄️',bg:'#e3f3ff',g:'❄️',o:['🌲','⛄','🧊'],pool:[220,361,215,86,124,698,90],rare:[131,144,471],lv:[34,40],L:{n:'Pryce',e:'🧓',t:[[87,41],[221,42],[699,43],[131,44]]},m:'🧊',mn:'Medalla Glaciar'},
+{n:'Cumbre Dragón',i:'🐉',bg:'#c1aee6',g:'✨',o:['⛰️','🪨','🏯'],pool:[147,371,443,610,142,566,696,621,329],rare:[384,9384,149],lv:[38,45],L:{n:'Lance',e:'🦸',t:[[148,46],[373,47],[697,48],[149,50]]},m:'🐲',mn:'Medalla Dragón'},
+{n:'Liga Pokémon',i:'🏆',bg:'#f5c6d8',g:'⭐',o:['🏛️','🌳','⛲'],pool:[143,130,248,445,59,65,68,94,612,405],rare:[150,249,250,382,384,9384],lv:[44,52],L:{n:'Campeón Azul',e:'😎',t:[[18,52],[65,52],[697,53],[6,54],[150,56]]},m:'🏆',mn:'Copa Campeón'}
+];
+const NPC=[['Cazabichos Tomi','🧑‍🌾'],['Excursionista Leo','🧗‍♂️'],['Nadadora Ana','🏊‍♀️'],['Científico Max','👨‍🔬'],['Chica Dino Sofi','👧'],['Karateka Ken','🥋'],['Domadragón Luz','🧝‍♀️'],['Pescador Beto','🎣'],['Ninja Kai','🥷'],['Rockero Rafa','🎸']];
+const ITEMDEF={poke:['🔴','Poké Ball',10],super:['🔵','Super Ball',30],ultra:['🟡','Ultra Ball',60],master:['🟣','Master Ball',500],pocion:['🧪','Poción',15],superpocion:['💖','Superpoción',40],caramelo:['🍬','Caramelo Raro',120],piedra:['💎','Piedra Evolutiva',80]};
+const BALLM={poke:1,super:1.5,ultra:2,master:100};
+const DIFF=[{n:'😊 Fácil',off:-2,mult:.55},{n:'🙂 Normal',off:0,mult:.75},{n:'😎 Difícil',off:2,mult:.95}];
+const FR=['🍎','🍓','⭐','🍌','🦴','🥚','🍇','🌸','🐟','⚽','🦖','🍩'];
+const WORDS=[['🐶','PERRO'],['🐱','GATO'],['🍎','MANZANA'],['☀️','SOL'],['🐸','RANA'],['🦕','DINOSAURIO'],['🐟','PEZ'],['🌙','LUNA'],['🏠','CASA'],['🚗','AUTO'],['🐘','ELEFANTE'],['🦁','LEON'],['⭐','ESTRELLA'],['🍌','BANANA'],['🐭','RATON'],['🐢','TORTUGA'],['🦋','MARIPOSA'],['🐝','ABEJA'],['🍕','PIZZA'],['⚽','PELOTA'],['🎈','GLOBO'],['🐮','VACA'],['🐷','CERDO'],['🐵','MONO'],['🦆','PATO'],['🍇','UVAS'],['🐍','SERPIENTE'],['🔥','FUEGO'],['💧','AGUA'],['🧀','QUESO'],['🦊','ZORRO'],['🐻','OSO'],['🐰','CONEJO'],['🦒','JIRAFA'],['🥚','HUEVO'],['🍦','HELADO'],['🌻','GIRASOL'],['🦖','REX'],['🐑','OVEJA'],['🐴','CABALLO'],['🦈','TIBURON'],['🐙','PULPO'],['🌳','ARBOL'],['🚀','COHETE'],['📚','LIBRO'],['🎁','REGALO'],['🍪','GALLETA'],['🦷','DIENTE'],['👟','ZAPATO'],['🌈','ARCOIRIS']];
+const LETTERS='ABCDEFGHIJLMNOPRSTUVZ';
+
+/* ====== UTILIDADES ====== */
+const $=s=>document.querySelector(s);
+const R=(a,b)=>a+Math.floor(Math.random()*(b-a+1));
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+function rng32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+const ART=id=>SHINY[id]?`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/shiny/${SHINY[id]}.png`:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
+const SPR=id=>SHINY[id]?`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/${SHINY[id]}.png`:`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+function img(id,cls='',small=false){return `<img class="${cls}" src="${small?SPR(id):ART(id)}" alt="${D[id][0]}" onerror="imgErr(this,${id})" draggable="false">`}
+function imgErr(el,id){if(!el.dataset.f){el.dataset.f=1;el.src=SPR(id);return}const s=document.createElement('span');s.className=(el.className||'')+' imgfb';s.textContent=TY[D[id][1]][0];el.replaceWith(s)}
+
+let S=null,B=null,MAP=null,P={x:1,y:5},FP=null,steps=0,lastMove=0,ITEMS=new Set(),lock=false;
+const name=m=>D[m.id][0], type=m=>D[m.id][1], tier=m=>D[m.id][2];
+const tIcon=t=>TY[t][0];
+const maxHp=m=>Math.floor(15+m.lvl*2.6*(1+tier(m)*.12));
+const stat=m=>5+m.lvl*(1+tier(m)*.12);
+const need=l=>Math.floor(15+l*l*.6);
+const eff=(a,d)=>SE[a].split(' ').includes(d)?2:NV[a].split(' ').includes(d)?.5:1;
+function mk(id,lvl){const m={id,lvl,xp:0,hp:0};m.hp=maxHp(m);return m}
+function evolveTo(id,lvl){let g=0;while(D[id][3]&&lvl>=D[id][3]&&g++<4){const t=D[id][4];id=Array.isArray(t)?pick(t):t}return id}
+function moves(m){const t=type(m);return[0,1,2].map(i=>({n:MV[t][i],t,p:[45,70,100][i],tier:i}))}
+function dmg(a,d,mv,mult){const base=((2*a.lvl/5+2)*mv.p*stat(a)/stat(d)/50+2)*2;return Math.max(1,Math.round(base*eff(mv.t,type(d))*mult*(.85+Math.random()*.15)))}
+function hpCol(r){return r>.5?'#3cb44b':r>.2?'#f2c200':'#e3350d'}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function load(){try{const s=localStorage.getItem(KEY);return s?JSON.parse(s):null}catch(e){return null}}
+function seen(id){S.seen[id]=1}
+function caught(id){S.seen[id]=1;S.caught[id]=1}
+const hasMedal=z=>S.medals.includes(z);
+
+/* ====== SONIDO Y VOZ ====== */
+let AC=null;
+function beep(f,d=.12,type='square',when=0,vol=.07){if(!S||!S.set.sound)return;try{AC=AC||new(window.AudioContext||window.webkitAudioContext)();const o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.value=f;const t=AC.currentTime+when;g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+d);o.connect(g);g.connect(AC.destination);o.start(t);o.stop(t+d+.03)}catch(e){}}
+const sfx={
+ ok(){beep(660,.1,'square',0);beep(990,.18,'square',.1)},
+ bad(){beep(260,.18,'sawtooth',0);beep(180,.3,'sawtooth',.16)},
+ hit(){beep(150,.1,'square',0,.1);beep(90,.12,'square',.06,.1)},
+ lvl(){[523,659,784,1046].forEach((f,i)=>beep(f,.16,'square',i*.11))},
+ catch(){[784,659,784,1046,1318].forEach((f,i)=>beep(f,.14,'triangle',i*.12,.1))},
+ heal(){[523,784,1046].forEach((f,i)=>beep(f,.2,'sine',i*.14,.1))},
+ step(){beep(420,.03,'triangle',0,.025)},
+ bump(){beep(110,.06,'square',0,.04)},
+ coin(){beep(988,.07,'square',0);beep(1318,.15,'square',.07)}
+};
+/* Voz: elige la voz más natural disponible (Edge "Natural/Online", Google, Apple Premium/Mejorada) */
+const VKEY='pokedino_voz',RKEY='pokedino_msg';
+const DED='¡Este juego es para Mateo, de parte de Papá y Mamá! ❤️';
+let VP={};try{VP=JSON.parse(localStorage.getItem(VKEY)||'{}')}catch(e){}
+function esVoices(){try{return speechSynthesis.getVoices().filter(v=>v.lang&&v.lang.toLowerCase().startsWith('es'))}catch(e){return[]}}
+function voiceScore(v){const n=v.name.toLowerCase();let s=0;if(/natural|neural/.test(n))s+=50;if(/online/.test(n))s+=30;if(/premium|mejorada|enhanced|siri/.test(n))s+=40;if(/google/.test(n))s+=25;if(/elvira|dalia|helena|ximena|paloma|elena|paulina|m[oó]nica|marisol|camila/.test(n))s+=10;if(/es-(mx|us|419|ar)/i.test(v.lang))s+=3;if(v.localService===false)s+=5;return s}
+function bestVoice(){const vs=esVoices();if(!vs.length)return null;if(VP.name){const v=vs.find(v=>v.name===VP.name);if(v)return v}return vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a))[0]}
+function speak(t,force){return new Promise(res=>{if(!window.speechSynthesis||(!force&&(!S||!S.set.voice)))return res();try{speechSynthesis.cancel();const txt=String(t).replace(/[\p{Extended_Pictographic}️‍]/gu,'').replace(/❓/g,'').trim();if(!txt)return res();const u=new SpeechSynthesisUtterance(txt);const v=bestVoice();if(v){u.voice=v;u.lang=v.lang}else u.lang='es-ES';u.rate=VP.rate||1.1;u.pitch=VP.pitch||1.05;let done=false;const fin=()=>{if(!done){done=true;res()}};u.onend=fin;u.onerror=fin;setTimeout(fin,txt.length*110/(u.rate)+2500);speechSynthesis.speak(u)}catch(e){res()}})}
+function recGet(){try{return localStorage.getItem(RKEY)}catch(e){return null}}
+let curAudio=null;
+function playDed(){const r=recGet();if(r){try{speechSynthesis&&speechSynthesis.cancel();curAudio&&curAudio.pause();curAudio=new Audio(r);curAudio.play().catch(()=>speak(DED,true));return}catch(e){}}speak(DED,true)}
+function splash(){openOv(`<div class="sheet center"><div style="font-size:90px;margin-top:14vh">💌</div><button class="big go" style="font-size:30px" onclick="dedica()">▶️ Toca para empezar</button></div>`)}
+function goFull(){try{const d=document.documentElement;(d.requestFullscreen||d.webkitRequestFullscreen).call(d).catch?.(()=>{})}catch(e){}}
+function dedica(){openOv(`<div class="sheet center"><div class="dedi"><div class="hearts">❤️ 💛 💙</div><p>¡Este juego es para<br><b>MATEO</b><br>de parte de<br>Papá y Mamá!</p><div class="hearts">❤️</div></div><button class="big" onclick="playDed()">🔊 Escuchar otra vez</button><button class="big go" onclick="goFull();titleScreen()">🎮 ¡A jugar!</button></div>`);playDed()}
+
+/* ====== PREGUNTAS DIDÁCTICAS ====== */
+function grp(f,n){let o='';for(let i=0;i<n;i++){o+=f;if(i%5===4&&i<n-1)o+=' '}return o}
+function numOpts(ans,spread,n){const s=new Set([ans]);let k=0;while(s.size<n&&k<300){k++;const sp=spread+(k>>4);const c=ans+R(-sp,sp);if(c>=0)s.add(c)}return shuffle([...s]).map(String)}
+const maxN=s=>s<=1?5:s<=3?10:s<=5?20:s<=7?30:s<=9?50:100;
+function qCount(s,n){const max=Math.min(20,5+s*3),k=R(1,max),f=pick(FR);return{t:'¿Cuántos hay?',say:'¿Cuántos hay? Cuéntalos',ico:grp(f,k),o:numOpts(k,2,n),a:String(k),ex:`Hay ${k}`}}
+function qAdd(s,n){const M=maxN(s),a=R(1,M-1),b=R(1,M-a),r=a+b,f=pick(FR);return{t:`${a} + ${b} = ❓`,say:`¿Cuánto es ${a} más ${b}?`,ico:r<=10?`${grp(f,a)} ➕ ${grp(f,b)}`:'',o:numOpts(r,Math.max(2,Math.round(r*.15)),n),a:String(r),ex:`${a} + ${b} = ${r}`}}
+function qSub(s,n){const M=Math.max(4,maxN(s)),a=R(2,M),b=R(1,a-1),r=a-b,f=pick(FR);return{t:`${a} − ${b} = ❓`,say:`¿Cuánto es ${a} menos ${b}?`,ico:a<=10?`${grp(f,r)}<span class="fade">${grp(f,b)}</span>`:'',o:numOpts(r,Math.max(2,Math.round(a*.15)),n),a:String(r),ex:`${a} − ${b} = ${r}`}}
+function qCmp(s){const M=maxN(s)*(s>=4?2:1);const a=R(0,M);let b;do{b=R(0,M)}while(b===a);const big=Math.random()<.5,f=pick(FR);const ans=big?Math.max(a,b):Math.min(a,b);return{t:big?'¿Cuál es MÁS GRANDE? 🐘':'¿Cuál es MÁS PEQUEÑO? 🐭',say:big?`¿Cuál es más grande, ${a} o ${b}?`:`¿Cuál es más pequeño, ${a} o ${b}?`,ico:(a<=10&&b<=10)?`${grp(f,a)||'∅'} &nbsp;|&nbsp; ${grp(f,b)||'∅'}`:'',o:[String(a),String(b)],a:String(ans),ex:`${Math.max(a,b)} es más grande que ${Math.min(a,b)}`}}
+function qSeq(s,n){const st=s<3?1:s<6?pick([1,2]):s<9?pick([2,5,10]):pick([3,4,5,10]);const x=R(0,s<3?5:20);const r=x+3*st;return{t:`${x}, ${x+st}, ${x+2*st}, ❓`,say:'¿Qué número sigue?',ico:'',o:numOpts(r,Math.max(2,st),n),a:String(r),ex:`Va de ${st} en ${st}: sigue ${r}`}}
+function qDouble(s,n){const k=R(2,s<7?10:25),f=pick(FR);return{t:`${k} + ${k} = ❓`,say:`¿Cuánto es ${k} más ${k}?`,ico:k<=5?`${grp(f,k)} ➕ ${grp(f,k)}`:'',o:numOpts(2*k,3,n),a:String(2*k),ex:`El doble de ${k} es ${2*k}`}}
+function qMiss(s,n){const M=maxN(s),a=R(1,M-2),c=R(a+1,M),r=c-a;return{t:`${a} + ❓ = ${c}`,say:`${a} más cuánto es igual a ${c}?`,ico:'',o:numOpts(r,3,n),a:String(r),ex:`${a} + ${r} = ${c}`}}
+function qMult(s,n){const tb=s<10?[2,5,10]:[2,3,4,5,10],a=pick(tb),b=R(1,10),r=a*b,f=pick(FR);return{t:`${b} × ${a} = ❓`,say:`¿Cuánto es ${b} por ${a}?`,ico:r<=20?Array.from({length:b},()=>f.repeat(a)).join(' '):'',o:numOpts(r,Math.max(3,a),n),a:String(r),ex:`${b} grupos de ${a} = ${r}`}}
+function letterOpts(ans,n){const s=new Set([ans]);while(s.size<n)s.add(pick(LETTERS));return shuffle([...s])}
+function qFirst(s,n){const[e,w]=pick(WORDS);return{t:'¿Con qué letra empieza?',say:`¿Con qué letra empieza ${w.toLowerCase()}?`,ico:`<div class="bigemo">${e}</div><div class="word">_${w.slice(1)}</div>`,o:letterOpts(w[0],n),a:w[0],ex:`${e} ${w} empieza con ${w[0]}`}}
+function qMissL(s,n){const[e,w]=pick(WORDS);const i=R(1,w.length-1);return{t:'¿Qué letra falta?',say:`¿Qué letra falta en ${w.toLowerCase()}?`,ico:`<div class="bigemo">${e}</div><div class="word">${w.slice(0,i)}_${w.slice(i+1)}</div>`,o:letterOpts(w[i],n),a:w[i],ex:`${e} ${w}`}}
+const T8=['fuego','agua','planta','electrico','roca','tierra','hielo','volador'];
+function qType(){const ds=T8.filter(d=>T8.some(a=>eff(a,d)===2));const d=pick(ds);const ans=pick(T8.filter(a=>eff(a,d)===2));const bad=shuffle(T8.filter(a=>eff(a,d)<2&&a!==ans)).slice(0,2);const lab=t=>`${TY[t][0]} ${TY[t][1]}`;return{t:`¿Qué le gana a ${lab(d)}?`,say:`¿Qué tipo le gana a ${TY[d][1]}?`,ico:'',o:shuffle([ans,...bad]).map(lab),a:lab(ans),ex:`${lab(ans)} le gana a ${lab(d)}`}}
+function qName(){let ids=Object.keys(S.seen).map(Number);if(ids.length<4)ids=ids.concat(STARTERS,[25,133,6,150]);const id=pick(ids);const o=new Set([D[id][0]]);while(o.size<3)o.add(D[pick(IDS)][0]);return{t:'¿Quién es?',say:'¿Cómo se llama este Pokémon?',ico:img(id,'qimg'),o:shuffle([...o]),a:D[id][0],ex:`¡Es ${D[id][0]}!`}}
+function qBefore(s,n){const M=maxN(s),k=R(2,M),bef=Math.random()<.5,ans=bef?k-1:k+1;return{t:bef?`¿Qué número va ANTES del ${k}?`:`¿Qué número va DESPUÉS del ${k}?`,say:bef?`¿Qué número va antes del ${k}?`:`¿Qué número va después del ${k}?`,ico:bef?`❓ ➡️ ${k}`:`${k} ➡️ ❓`,o:numOpts(ans,2,n),a:String(ans),ex:bef?`Antes del ${k} va el ${ans}`:`Después del ${k} va el ${ans}`}}
+function qEven(s){const k=R(1,Math.min(maxN(s),40)),f=pick(FR),ans=k%2?'IMPAR':'PAR';let ico='';if(k<=12){for(let i=0;i<k;i+=2)ico+=f.repeat(Math.min(2,k-i))+' '}return{t:`¿El ${k} es PAR o IMPAR?`,say:`¿El ${k} es par o impar?`,ico,o:['PAR','IMPAR'],a:ans,ex:`${k} es ${ans}`+(k<=12?' (mira las parejas)':'')}}
+function qWord(s){const[e,w]=pick(WORDS);const o=new Set([w]);while(o.size<3)o.add(pick(WORDS)[1]);return{t:'¿Qué es?',say:'¿Qué palabra es este dibujo?',ico:`<div class="bigemo">${e}</div>`,o:shuffle([...o]),a:w,ex:`${e} es ${w}`}}
+function qStory(s,n){const M=Math.min(maxN(s),20),f=pick(FR),add=Math.random()<.5;const a=R(2,M-1),b=add?R(1,M-a):R(1,a-1),r=add?a+b:a-b;return{t:add?'¿Cuántos tienes ahora?':'¿Cuántos te quedan?',say:add?`Tienes ${a}. Te dan ${b} más. ¿Cuántos tienes ahora?`:`Tienes ${a}. Regalas ${b}. ¿Cuántos te quedan?`,ico:`<div class="story">Tienes ${a} ${f}<br>${add?`➕ te dan ${b} más`:`➖ regalas ${b}`}</div>`,o:numOpts(r,2,n),a:String(r),ex:add?`${a} + ${b} = ${r}`:`${a} − ${b} = ${r}`}}
+let QH=[],QLAST=null;
+function makeQ(s){const q=S.set.q,c=[];
+ if(q.num){if(s<=4)c.push(qCount);c.push(qAdd);if(s>=1)c.push(qSub,qBefore);if(s>=2)c.push(qCmp,qStory);if(s>=3)c.push(qSeq);if(s>=4)c.push(qEven);if(s>=5&&s<=9)c.push(qDouble);if(s>=6)c.push(qMiss);if(s>=8)c.push(qMult)}
+ if(q.let){c.push(qFirst);if(s>=1)c.push(qWord);if(s>=4)c.push(qMissL)}
+ if(q.tipo&&s>=1)c.push(qType);if(q.nom)c.push(qName);if(!c.length)c.push(qAdd);
+ const fs=c.length>1?c.filter(f=>f!==QLAST):c;
+ for(let k=0;k<20;k++){const f=pick(fs),x=f(s,s>=6?4:3),key=x.t+'|'+x.a+'|'+x.ico;if(!QH.includes(key)||k===19){QH.push(key);if(QH.length>60)QH.shift();QLAST=f;return x}}
+}
+
+function ask(tierQ,label){return new Promise(res=>{
+ const d=DIFF[S.set.diff];const s=Math.max(0,Math.min(12,Math.min(7,Math.floor(S.zone/4))+tierQ*3+d.off));
+ const q=makeQ(s);const pnl=$('#bpanel');window.QS=q.say;
+ setMsg(label||'🤔 ¡Responde para atacar!');
+ pnl.innerHTML=`<div class="q"><div class="qtext">${q.t} <button class="spk" onclick="speak(QS)">🔊</button></div>${q.ico?`<div class="qico">${q.ico}</div>`:''}<div class="opts">${q.o.map((o,i)=>`<button class="opt ${o.length>3?'sm':''}" data-i="${i}">${o}</button>`).join('')}</div></div>`;
+ speak(q.say);const t0=Date.now();
+ const bs=[...pnl.querySelectorAll('.opt')];
+ bs.forEach(b=>b.onclick=()=>{bs.forEach(x=>x.disabled=true);const ok=q.o[+b.dataset.i]===q.a;
+  if(ok){b.classList.add('right');sfx.ok();S.st.ok++;S.st.streak++;S.st.best=Math.max(S.st.best,S.st.streak);setTimeout(()=>res({ok:true,fast:Date.now()-t0<7000,streak:S.st.streak}),650)}
+  else{b.classList.add('wrong');bs.forEach(x=>{if(q.o[+x.dataset.i]===q.a)x.classList.add('right')});sfx.bad();S.st.bad++;S.st.streak=0;pnl.querySelector('.qtext').innerHTML='💡 '+q.ex;Promise.all([speak('Casi. '+q.ex),sleep(2400)]).then(()=>res({ok:false}))}
+ });
+})}
+
+/* ====== ZONAS Y MAPA ====== */
+function zoneAt(i){
+ i=Math.min(i,MAXZ);
+ if(i<12)return{...ZONES[i],idx:i};
+ const r=rng32(i*131+7),b=ZONES[Math.floor(r()*12)];
+ const lo=Math.min(94,Math.round(46+(i-12)*1.3)),lv=[lo,Math.min(100,lo+6)];
+ const base=IDS.filter(x=>D[x][2]<5);const pool=[];while(pool.length<10)pool.push(base[Math.floor(r()*base.length)]);
+ let t,L;
+ if(i===MAXZ){t=[[149,98],[697,98],[6,98],[150,100],[384,100],[9384,100]];L={n:'Gran Campeón Final',e:'👑',t}}
+ else{t=[0,1,2,3].map(()=>[STRONG[Math.floor(r()*STRONG.length)],Math.min(100,lv[1]+2)]);if(i%4===0)t.push([LEGENDS[Math.floor(r()*LEGENDS.length)],Math.min(100,lv[1]+3)]);L={n:'Maestro '+['Rojo','Oro','Rubí','Diamante','Blanco','Sol','Luna','Zafiro','Plata','Esmeralda'][i%10],e:pick(['🧙‍♂️','🦹','🧛','🧞','🥷','🤴','👸']),t}}
+ return{...b,idx:i,n:b.n,pool,lv,rare:LEGENDS.concat(STRONG),L,m:i===MAXZ?'👑':'🌟',mn:i===MAXZ?'Corona Final':'Estrella del Nivel '+(i+1)};
+}
+function genMap(zi){
+ const r=rng32((Math.random()*4294967296)>>>0),rr=(a,b)=>a+Math.floor(r()*(b-a+1)),z=zoneAt(zi);
+ const g=[],ob=[];
+ for(let y=0;y<H;y++){g[y]=[];ob[y]=[];for(let x=0;x<W;x++){const border=x===0||y===0||x===W-1||y===H-1;g[y][x]=border?2:0;ob[y][x]=border?z.o[0]:''}}
+ for(let x=1;x<W-1;x++)g[5][x]=3;
+ for(let y=1;y<H-1;y++)g[y][6]=3;
+ const nb=rr(5,7);
+ for(let i=0;i<nb;i++){const cx=rr(1,W-2),cy=rr(1,H-2),rad=rr(1,2);for(let dy=-rad;dy<=rad;dy++)for(let dx=-rad;dx<=rad;dx++){const x=cx+dx,y=cy+dy;if(x>0&&y>0&&x<W-1&&y<H-1&&g[y][x]===0&&dx*dx+dy*dy<=rad*rad+1)g[y][x]=1}}
+ for(let y=1;y<H-1;y++)for(let x=1;x<W-1;x++)if(g[y][x]===0&&r()<.16){g[y][x]=2;ob[y][x]=z.o[Math.floor(r()*z.o.length)]}
+ const sp={};const put=(x,y,o)=>{g[y][x]=3;ob[y][x]='';sp[x+','+y]=o};
+ put(6,1,{k:'H'});put(6,9,{k:'S'});put(11,5,{k:'G'});put(12,5,{k:'E'});
+ if(zi>0)put(0,5,{k:'B'});
+ const tp=[[3,4],[9,6],[4,7],[8,3],[2,7],[10,3]];const used=new Set();
+ for(let i=0;i<2;i++){let p;do{p=tp[rr(0,tp.length-1)]}while(used.has(p));used.add(p);const npc=NPC[(zi*3+i*5+rr(0,9))%NPC.length];g[p[1]][p[0]]=4;sp[p[0]+','+p[1]]={k:'T',i,n:npc[0],e:npc[1]}}
+ return{g,ob,sp};
+}
+function reachable(){const seenC=new Set(['1,5']),q=[[1,5]];while(q.length){const[x,y]=q.shift();for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy,k=nx+','+ny;if(nx<0||ny<0||nx>=W||ny>=H||seenC.has(k))continue;const t=MAP.g[ny][nx];if(t===2||t===4)continue;seenC.add(k);q.push([nx,ny])}}return seenC}
+function spawnItems(){const re=[...reachable()].filter(k=>!MAP.sp[k]&&k!==P.x+','+P.y);shuffle(re);return new Set(re.slice(0,R(2,3)))}
+function enterZone(zi,pos){zi=Math.min(zi,MAXZ);S.zone=zi;S.tb={};S.maxZone=Math.max(S.maxZone,zi);MAP=genMap(zi);P=pos||{x:1,y:5};FP=null;steps=0;ITEMS=spawnItems();S.pos=P;renderMap();save()}
+function goZone(zi,dir){enterZone(zi,dir==='back'?{x:10,y:5}:{x:1,y:5});const z=zoneAt(zi);toast(`${z.i} ${z.n}`,2200);speak(z.n)}
+
+function renderMap(){
+ const z=zoneAt(S.zone);let h='';
+ for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+  const t=MAP.g[y][x],k=x+','+y,sp=MAP.sp[k];let cls='c t'+t,ch='';
+  if(t===2)ch=MAP.ob[y][x];else if(t===1)ch=`<span class="gr">${z.g}</span>`;
+  if(sp){if(sp.k==='H')ch='🏥';else if(sp.k==='S')ch='🏪';else if(sp.k==='G')ch='🏟️'+(hasMedal(S.zone)?'<b class="ok">✅</b>':'<b class="ex">❗</b>');else if(sp.k==='E')ch=hasMedal(S.zone)?'🚩':'🔒';else if(sp.k==='B')ch='⬅️';else if(sp.k==='T')ch=sp.e+(S.tb[S.zone+'-'+sp.i]?'<b class="ok">✅</b>':'<b class="ex">❗</b>')}
+  if(ITEMS.has(k))ch='✨';
+  if(P.x===x&&P.y===y)ch=`<span class="pl">${S.avatar}</span>`;
+  else if(FP&&FP.x===x&&FP.y===y&&S.team[0])ch=img(S.team[0].id,'fol',true);
+  h+=`<div class="${cls}">${ch}</div>`;
+ }
+ const m=$('#map');m.innerHTML=h;document.documentElement.style.setProperty('--zbg',z.bg);hud();
+}
+function hud(){const z=zoneAt(S.zone);$('#zname').textContent=`${z.i} ${z.n} · Nivel ${S.zone+1}/50`;$('#coins').textContent=S.coins;$('#med').textContent=S.medals.length}
+let toastT=null;
+function toast(t,ms=1800){const el=$('#toast');el.innerHTML=t;el.classList.add('on');clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove('on'),ms)}
+
+function move(dx,dy){
+ if(!S||!MAP||lock||!$('#ov').hidden)return;
+ const nx=P.x+dx,ny=P.y+dy;if(nx<0||ny<0||nx>=W||ny>=H)return;
+ const k=nx+','+ny,sp=MAP.sp[k],t=MAP.g[ny][nx];
+ if(sp&&sp.k==='T')return trainerTalk(sp);
+ if(sp&&sp.k==='G'&&!hasMedal(S.zone))return gymPrompt();
+ if(sp&&sp.k==='E'){if(hasMedal(S.zone)){if(S.zone>=MAXZ){dialog('<div class="who">👑</div><p>¡Completaste los 50 niveles!</p><p>¡Eres el mejor entrenador del mundo! 🎉</p>',[['🎉 ¡Genial!',closeOv]]);return}goZone(S.zone+1,'fwd')}else{toast('🔒 ¡Primero gana la medalla del gimnasio 🏟️!');sfx.bump()}return}
+ if(sp&&sp.k==='B')return goZone(S.zone-1,'back');
+ if(t===2||t===4){sfx.bump();return}
+ FP={...P};P={x:nx,y:ny};S.pos=P;sfx.step();
+ if(sp&&sp.k==='H'){healAll();sfx.heal();toast('🏥💖 ¡Tus Pokémon están curados!');speak('Tus Pokémon están curados')}
+ if(ITEMS.has(k)){ITEMS.delete(k);collect()}
+ renderMap();save();
+ if(sp&&sp.k==='S')return openShop();
+ if(t===1){steps++;if(steps>=3&&Math.random()<.2){steps=0;encounter()}}
+}
+function collect(){const r=Math.random();if(r<.45){const c=R(5,15)+S.zone*2;S.coins+=c;toast(`✨ ¡Encontraste ${c} 🪙!`)}else if(r<.75){S.it.poke++;toast('✨ ¡Encontraste una 🔴 Poké Ball!')}else if(r<.92){S.it.pocion++;toast('✨ ¡Encontraste una 🧪 Poción!')}else if(r<.98){S.it.super++;toast('✨ ¡Encontraste una 🔵 Super Ball!')}else{S.it.caramelo++;toast('✨ ¡WOW! ¡Un 🍬 Caramelo Raro!')}sfx.coin()}
+function healAll(){S.team.concat(S.box).forEach(m=>m.hp=maxHp(m))}
+function encounter(){const z=zoneAt(S.zone);let id=(Math.random()<.07&&z.rare.length)?pick(z.rare):pick(z.pool);const lvl=R(z.lv[0],z.lv[1]);id=evolveTo(id,lvl);lock=true;$('#map').classList.add('flash');setTimeout(()=>{$('#map').classList.remove('flash');lock=false;startBattle([mk(id,lvl)],null)},600)}
+function trainerTalk(sp){const key=S.zone+'-'+sp.i;if(S.tb[key]){toast(`${sp.e} ${sp.n}: ¡Buena batalla! 👍`);return}
+ const z=zoneAt(S.zone),n=S.zone<1?1:2;const team=Array.from({length:n},()=>{const l=z.lv[1];return mk(evolveTo(pick(z.pool),l),l)});
+ dialog(`<div class="who">${sp.e}</div><p>${sp.n}:<br>¡Te reto a una batalla! ⚔️</p>`,[['⚔️ ¡Vamos!',()=>startBattle(team,{n:sp.n,e:sp.e,kind:'npc',key})],['🏃 Ahora no',closeOv]]);speak(`${sp.n}: Te reto a una batalla`)}
+function gymPrompt(){const z=zoneAt(S.zone),L=z.L,rec=Math.max(...L.t.map(t=>t[1]))-2;const best=Math.max(...S.team.map(m=>m.lvl));
+ dialog(`<div class="who">${L.e}</div><p>Líder ${L.n}</p><p>¡Gáname para conseguir la<br>${z.m} ${z.mn}!</p><p style="font-size:.8em">Nivel recomendado: ${rec} &nbsp;(tu mejor: ${best})</p>`,[['⚔️ ¡Luchar!',()=>startBattle(L.t.map(([id,l])=>mk(id,l)),{n:'Líder '+L.n,e:L.e,kind:'gym',zone:S.zone})],['🌿 Entrenar más',closeOv]]);speak(`Líder ${L.n}. Gáname para conseguir la ${z.mn}`)}
+
+/* ====== PANTALLAS ====== */
+function openOv(html,cls=''){const o=$('#ov');o.className=cls;o.innerHTML=html;o.hidden=false;o.scrollTop=0}
+function closeOv(){const o=$('#ov');o.hidden=true;o.innerHTML='';o.className='';if(S&&MAP)renderMap()}
+let DLG=[];
+function dialog(html,btns){DLG=btns.map(b=>b[1]);openOv(`<div class="sheet"><div class="dlg">${html}<div>${btns.map((b,i)=>`<button class="big ${i===0?'go':''}" onclick="DLG[${i}]()">${b[0]}</button>`).join('')}</div></div></div>`)}
+const topBar=t=>`<div class="top"><h2>${t}</h2><button class="big go" onclick="closeOv()">✖️</button></div>`;
+
+function titleScreen(){const has=!!load();
+ openOv(`<div class="sheet center"><h1 class="logo">Pokémon<br><small>Dino Aventura 🦖</small></h1><p style="font-size:20px">Para Mateo ❤️ de Papá y Mamá</p><div class="hero">${img(696)}${img(25)}${img(4)}</div>${has?'<button class="big go" onclick="cont()">▶️ Continuar</button><br>':''}<button class="big ${has?'':'go'}" onclick="newGame()">🆕 Nueva partida</button></div>`)}
+function fixSave(){S.it=Object.assign({poke:0,super:0,ultra:0,master:0,pocion:0,superpocion:0,caramelo:0,piedra:0},S.it||{});S.box=S.box||[];S.tb=S.tb||{};S.st=Object.assign({ok:0,bad:0,streak:0,best:0},S.st||{});S.set=Object.assign({diff:1,voice:true,sound:true,q:{num:true,let:true,tipo:true,nom:true}},S.set||{});S.team.forEach(m=>{if(m.hp>maxHp(m))m.hp=maxHp(m)})}
+function cont(){S=load();fixSave();closeOv();enterZone(S.zone,{x:1,y:5});toast(`¡Hola de nuevo, ${S.name}! 👋`);if(!S.gift)giveGift()}
+function giveGift(){S.gift=1;const l=Math.max(5,...S.team.map(m=>m.lvl));const g=[133,384,9384];g.forEach(id=>{const m=mk(id,l);caught(id);if(S.team.length<6)S.team.push(m);else S.box.unshift(m)});S.it.piedra+=2;save();
+ dialog(`<div class="who">🎁</div><p>¡Regalo de Papá y Mamá para ${S.name}! ❤️</p><div class="hero">${g.map(id=>img(id)).join('')}</div><p>Eevee, Rayquaza y Rayquaza Negro<br>+ 💎💎 2 Piedras Evolutivas</p><p style="font-size:.8em">Usa la 💎 en 🎒 Mi equipo para que Eevee evolucione en el que tú elijas.</p>`,[['🎉 ¡Gracias!',closeOv]]);speak(`Regalo de Papá y Mamá: Eevee, Rayquaza y Rayquaza Negro`)}
+let NEW={name:'',av:'🧒'};
+function newGame(){if(load()&&!confirm('¿Empezar de nuevo? Se borrará la partida guardada.'))return;
+ openOv(`<div class="sheet center"><h2>¿Cómo te llamas?</h2><input id="nm" maxlength="12" placeholder="Tu nombre" value="Mateo"><h2>Elige tu entrenador</h2><div class="avs">${['🧒','👦','👧','🧑','🦸','🥷','🧙','🤠'].map(a=>`<button class="av ${a===NEW.av?'sel':''}" onclick="NEW.av='${a}';document.querySelectorAll('.av').forEach(b=>b.classList.remove('sel'));this.classList.add('sel')">${a}</button>`).join('')}</div><br><button class="big go" onclick="pickStarter()">Siguiente ➡️</button></div>`)}
+function pickStarter(){NEW.name=($('#nm').value||'').trim()||'Entrenador';
+ openOv(`<div class="sheet center"><h2>¡Elige tu primer Pokémon!</h2><div class="grid">${STARTERS.map(id=>`<button class="st" onclick="startGame(${id})">${img(id)}<br>${tIcon(D[id][1])} ${D[id][0]}</button>`).join('')}</div></div>`)}
+function startGame(id){
+ S={v:1,name:NEW.name,avatar:NEW.av,team:[mk(id,5)],box:[],coins:50,it:{poke:5,super:0,ultra:0,master:0,pocion:3,superpocion:0,caramelo:0,piedra:1},gift:1,zone:0,maxZone:0,medals:[],seen:{},caught:{},tb:{},st:{ok:0,bad:0,streak:0,best:0},set:{diff:1,voice:true,sound:true,q:{num:true,let:true,tipo:true,nom:true}},pos:{x:1,y:5}};
+ caught(id);enterZone(0,{x:1,y:5});
+ dialog(`<div class="who">👴</div><p>¡Hola ${S.name}! Soy el Profesor Oak.</p><p>🌿 Camina por la hierba para encontrar Pokémon.</p><p>🧠 ¡Responde bien las preguntas para atacar!</p><p>🔴 Atrápalos a todos y gana las 🏅 medallas.</p>`,[['🚀 ¡A jugar!',closeOv]]);
+ speak(`¡Hola ${S.name}! Camina por la hierba para encontrar Pokémon. Responde bien las preguntas para atacar.`);
+}
+
+function monCard(m,btns){const r=m.hp/maxHp(m);return `<div class="mc">${img(m.id)}<div class="mi"><b>${tIcon(type(m))} ${name(m)}</b> &nbsp;Nv ${m.lvl}<div class="hp"><i style="width:${r*100}%;background:${hpCol(r)}"></i></div><small>❤️ ${m.hp}/${maxHp(m)}</small><div class="hp xp"><i style="width:${Math.min(100,m.xp/need(m.lvl)*100)}%"></i></div></div><div class="mb">${btns}</div></div>`}
+function openTeam(){
+ let h=topBar(`🎒 Mi equipo (${S.team.length}/6)`);
+ h+=S.team.map((m,i)=>monCard(m,(D[m.id][3]?`<button style="background:#c9f" onclick="evoNow(${i})">💎 Evolucionar</button>`:'')+(i>0?`<button onclick="toFirst(${i})">⭐ 1º</button>`:'<span class="tag">⭐ Primero</span>')+(S.team.length>1?`<button onclick="toBox(${i})">📦</button>`:''))).join('');
+ h+=`<h2>🎒 Mochila</h2><div class="row">${Object.entries(ITEMDEF).map(([k,v])=>`<span class="chip">${v[0]} ${S.it[k]}</span>`).join('')}</div>`;
+ h+=`<h2>📦 PC (${S.box.length})</h2>${S.box.length?'':'<p>Aquí van los Pokémon que atrapes cuando tu equipo esté lleno.</p>'}`;
+ h+=S.box.map((m,i)=>monCard(m,S.team.length<6?`<button onclick="toTeam(${i})">➕</button>`:'<span class="tag">Equipo lleno</span>')).join('');
+ openOv(`<div class="sheet">${h}</div>`);
+}
+function evoNow(i){const m=S.team[i];if(!S.it.piedra){dialog('<div class="who">💎</div><p>Necesitas una Piedra Evolutiva.</p><p>Cómprala en la tienda 🏪</p>',[['👍 OK',openTeam]]);return}
+ const to=D[m.id][4];if(!Array.isArray(to))return doEvo(i,to);
+ openOv(`<div class="sheet center">${topBar('💎 ¿En cuál evoluciona '+name(m)+'?')}<div class="grid">${to.map(id=>`<button class="st" onclick="doEvo(${i},${id})">${img(id)}<br>${tIcon(D[id][1])} ${D[id][0]}</button>`).join('')}</div></div>`);speak(`¿En cuál quieres que evolucione ${name(m)}?`)}
+function doEvo(i,to){const m=S.team[i],from=name(m),r=m.hp/maxHp(m);S.it.piedra--;m.id=to;m.hp=Math.max(1,Math.round(maxHp(m)*r));caught(to);sfx.catch();save();
+ dialog(`<div class="hero">${img(to)}</div><p>🎉 ¡${from} evolucionó en ${name(m)}!</p>`,[['🎒 Ver mi equipo',openTeam]]);speak(`${from} evolucionó en ${name(m)}`)}
+function toFirst(i){const[m]=S.team.splice(i,1);S.team.unshift(m);save();openTeam()}
+function toBox(i){if(S.team.length<2)return;S.box.unshift(S.team.splice(i,1)[0]);save();openTeam()}
+function toTeam(i){if(S.team.length>=6)return;S.team.push(S.box.splice(i,1)[0]);save();openTeam()}
+
+function openDex(sel){
+ const nc=Object.keys(S.caught).length,ns=Object.keys(S.seen).length;
+ let h=topBar(`📖 Pokédex ${nc}/${IDS.length}`)+`<p>🔴 Atrapados: ${nc} &nbsp; 👀 Vistos: ${ns}</p>`;
+ if(sel&&S.seen[sel]){const d=D[sel];let ev='';if(d[3]){const to=Array.isArray(d[4])?'¡muchas formas!':D[d[4]][0];ev=`<br>⬆️ Evoluciona a ${to} en Nv ${d[3]}`}h+=`<div class="dexinfo">${img(sel)}<div><b>#${num(sel)} ${d[0]}</b><br>${tIcon(d[1])} ${TY[d[1]][1]}<br>${S.caught[sel]?'🔴 ¡Atrapado!':'👀 Visto'}${ev}<br>💪 ${'⭐'.repeat(d[2]+1)}</div></div>`}
+ h+=`<div class="dexg">${IDS.map(id=>{const c=S.caught[id],s=S.seen[id];return `<div class="dx ${c?'caught':s?'seen':'unk'}" onclick="openDex(${id})">${(c||s)?img(id,'',true):'<div class="qq">❔</div>'}<br>${c||s?D[id][0]:'#'+num(id)}</div>`}).join('')}</div>`;
+ openOv(`<div class="sheet">${h}</div>`);
+}
+function openMedals(){
+ const stars=S.medals.filter(z=>z>=12).length;
+ let h=topBar('🗺️ Medallas y Mapa');
+ h+=`<div class="meds">${ZONES.map((z,i)=>`<div class="med ${hasMedal(i)?'got':'lock'}"><b>${z.m}</b>${z.mn}<br><small>${z.L.e} ${z.L.n}</small></div>`).join('')}</div>`;
+ h+=`<div class="row"><span class="chip">🏁 Niveles ganados: ${S.medals.length}/50</span><span class="chip">✅ Respuestas buenas: ${S.st.ok}</span><span class="chip">🔥 Mejor racha: ${S.st.best}</span><span class="chip">🔴 Atrapados: ${Object.keys(S.caught).length}</span></div>`;
+ h+=`<h2>✈️ Viajar a una zona</h2>`;
+ for(let i=S.maxZone;i>=0;i--){const z=zoneAt(i);h+=`<button class="big zb ${i===S.zone?'go':''}" onclick="closeOv();goZone(${i},'fwd')">${i+1}. ${z.i} ${z.n} <small>(Nv ${z.lv[0]}-${z.lv[1]})</small> ${hasMedal(i)?'✅':''}</button>`}
+ openOv(`<div class="sheet">${h}</div>`);
+}
+function openShop(){
+ let h=topBar('🏪 Tienda')+`<p style="font-size:22px">Tienes 🪙 <b>${S.coins}</b> monedas</p>`;
+ h+=Object.entries(ITEMDEF).map(([k,v])=>`<div class="shopi"><span class="e">${v[0]}</span><span class="n">${v[1]}<br><small>Tienes: ${S.it[k]}</small></span><button ${S.coins<v[2]?'disabled style="opacity:.4"':''} onclick="buy('${k}')">🪙 ${v[2]}</button></div>`).join('');
+ h+='<p>💡 Ganas 🪙 respondiendo bien y ganando batallas.</p>';
+ openOv(`<div class="sheet">${h}</div>`);
+}
+function buy(k){const p=ITEMDEF[k][2];if(S.coins<p)return;S.coins-=p;S.it[k]++;sfx.coin();save();openShop()}
+function openSet(){
+ const s=S.set;const sw=(on,fn,l)=>`<button class="sw ${on?'on':''}" onclick="${fn};save();openSet()">${l}</button>`;
+ let h=topBar('⚙️ Ajustes');
+ h+=`<h2>Dificultad de preguntas</h2><div class="row">${DIFF.map((d,i)=>sw(s.diff===i,`S.set.diff=${i}`,d.n)).join('')}</div>`;
+ h+=`<h2>Tipos de preguntas</h2><div class="row">${sw(s.q.num,'S.set.q.num=!S.set.q.num','🔢 Números')}${sw(s.q.let,'S.set.q.let=!S.set.q.let','🔤 Letras')}${sw(s.q.tipo,'S.set.q.tipo=!S.set.q.tipo','🔥 Tipos')}${sw(s.q.nom,'S.set.q.nom=!S.set.q.nom','📖 Nombres')}</div>`;
+ const vs=esVoices(),bv=bestVoice();
+ h+=`<h2>🗣️ Voz</h2><p style="opacity:.85">Elige la voz que suene mejor y toca ▶️ para probarla.</p><div class="row">${vs.length?vs.slice().sort((a,b)=>voiceScore(b)-voiceScore(a)).map((v,i)=>`<button class="sw ${bv&&bv.name===v.name?'on':''}" onclick="VP.name=esVoices().sort((a,b)=>voiceScore(b)-voiceScore(a))[${i}].name;saveVP();openSet();speak('¡Hola Mateo! Así sueno yo.',true)">${v.name.replace(/Microsoft |Google /,'').slice(0,34)}</button>`).join(''):'<span class="chip">Este navegador no tiene voces en español 😕</span>'}</div><div class="row"><button class="sw" onclick="speak('¡Hola Mateo! ¿Cuánto es tres más cuatro?',true)">▶️ Probar voz</button>${[['🐢 Lenta',.9],['🙂 Normal',1.1],['🐇 Rápida',1.3]].map(([l,r])=>`<button class="sw ${(VP.rate||1.1)===r?'on':''}" onclick="VP.rate=${r};saveVP();openSet()">${l}</button>`).join('')}</div>`;
+ h+=`<h2>🎙️ Mensaje de Papá y Mamá</h2><p style="opacity:.85">Graben su propia voz diciendo el mensaje y sonará al empezar el juego (en vez de la voz de la máquina).</p><div class="row"><button class="sw ${REC?'on':''}" onclick="toggleRec()">${REC?'⏹️ Parar grabación':'🔴 Grabar (máx. 15 seg)'}</button>${recGet()?'<button class="sw" onclick="playDed()">▶️ Escuchar</button><button class="sw" onclick="delRec()">🗑️ Borrar</button>':'<span class="chip">Sin grabación: se usa la voz de arriba</span>'}</div>`;
+ h+=`<h2>Sonido</h2><div class="row">${sw(s.voice,'S.set.voice=!S.set.voice','🗣️ Voz que lee')}${sw(s.sound,'S.set.sound=!S.set.sound','🔊 Efectos')}</div>`;
+ h+=`<h2>Partida</h2><div class="row"><span class="chip">👤 ${S.name} ${S.avatar}</span><button class="sw" onclick="resetGame()">🗑️ Borrar partida</button></div>`;
+ h+=`<p style="opacity:.8">💾 La partida se guarda sola en este navegador.</p>`;
+ openOv(`<div class="sheet">${h}</div>`);
+}
+function saveVP(){try{localStorage.setItem(VKEY,JSON.stringify(VP))}catch(e){}}
+let REC=null,recT=null;
+async function toggleRec(){
+ if(REC){REC.stop();return}
+ try{
+  const st=await navigator.mediaDevices.getUserMedia({audio:true});const ch=[];const r=new MediaRecorder(st);REC=r;
+  r.ondataavailable=e=>ch.push(e.data);
+  r.onstop=()=>{clearTimeout(recT);st.getTracks().forEach(t=>t.stop());REC=null;const bl=new Blob(ch,{type:r.mimeType||'audio/webm'});const fr=new FileReader();fr.onload=()=>{try{localStorage.setItem(RKEY,fr.result);toast('✅ ¡Mensaje guardado!')}catch(e){alert('No se pudo guardar: la grabación es muy larga. Prueben con una más corta.')}openSet();playDed()};fr.readAsDataURL(bl)};
+  r.start();recT=setTimeout(()=>r.state==='recording'&&r.stop(),15000);openSet();
+ }catch(e){REC=null;alert('No se pudo usar el micrófono. Den permiso al navegador para usar el micrófono e intenten de nuevo.')}
+}
+function delRec(){if(!confirm('¿Borrar el mensaje grabado?'))return;try{localStorage.removeItem(RKEY)}catch(e){}openSet()}
+function resetGame(){if(!confirm('¿Seguro que quieres BORRAR la partida?'))return;try{localStorage.removeItem(KEY)}catch(e){}S=null;MAP=null;$('#map').innerHTML='';titleScreen()}
+
+/* ====== BATALLA ====== */
+const act=()=>S.team[B.pi], foe=()=>B.foes[B.fi];
+function setMsg(t){const el=$('#bmsg');if(el)el.textContent=t}
+function say(t,ms=1100){return new Promise(r=>{const el=$('#bmsg');if(!el)return r();el.textContent=t;let done=false;const fin=()=>{if(done)return;done=true;el.onclick=null;r()};Promise.all([speak(t),sleep(ms)]).then(()=>setTimeout(fin,150));setTimeout(()=>{if(!done)el.onclick=()=>{try{speechSynthesis.cancel()}catch(e){}fin()}},300)})}
+function clearPanel(){const p=$('#bpanel');if(p)p.innerHTML=''}
+function anim(sel,cls,ms=600){const el=$(sel);if(!el)return;el.classList.remove(cls);void el.offsetWidth;el.classList.add(cls);setTimeout(()=>el.classList.remove(cls),ms)}
+
+function startBattle(foes,tr){
+ if(!S.team.some(m=>m.hp>0))healAll();
+ B={foes,fi:0,wild:!tr,tr,pi:S.team.findIndex(m=>m.hp>0),shown:{e:0,p:0}};
+ foes.forEach(f=>seen(f.id));
+ const z=zoneAt(S.zone);
+ openOv(`<div class="battle" style="--zbg:${z.bg}"><div class="bfield"><div class="card" id="ecard"></div><div class="mon" id="emon"></div><div class="mon" id="pmon"></div><div class="card" id="pcard"></div></div><div class="msg" id="bmsg"></div><div class="panel" id="bpanel"></div></div>`,'bov');
+ renderB();
+ (async()=>{
+  if(tr)await say(`${tr.e} ¡${tr.n} quiere luchar!`);
+  else await say(`¡Un ${name(foe())} salvaje apareció!`+(tier(foe())===5?' ✨¡Es LEGENDARIO!✨':''));
+  await say(`¡Adelante, ${name(act())}!`,900);
+  menu();
+ })();
+}
+function renderB(){
+ if(!B)return;const f=foe(),a=act();
+ const fr=f.hp/maxHp(f),ar=a.hp/maxHp(a);
+ const balls=B.tr?`<div class="balls">${B.foes.map((x,i)=>i<B.fi||x.hp<=0?'⚫':'🔴').join('')}</div>`:'';
+ $('#ecard').innerHTML=`${tIcon(type(f))} ${name(f)} <small>Nv ${f.lvl}</small><div class="hp"><i style="width:${fr*100}%;background:${hpCol(fr)}"></i></div>${balls}`;
+ $('#pcard').innerHTML=`${tIcon(type(a))} ${name(a)} <small>Nv ${a.lvl}</small><div class="hp"><i style="width:${ar*100}%;background:${hpCol(ar)}"></i></div><small>❤️ ${a.hp}/${maxHp(a)}</small><div class="hp xp"><i style="width:${Math.min(100,a.xp/need(a.lvl)*100)}%"></i></div>`;
+ if(B.shown.e!==f.id||B.forceE){$('#emon').innerHTML=img(f.id);B.shown.e=f.id;B.forceE=false}
+ if(B.shown.p!==a.id){$('#pmon').innerHTML=img(a.id);B.shown.p=a.id}
+}
+function menu(){
+ if(!B)return;setMsg(`¿Qué hará ${name(act())}?`);
+ $('#bpanel').innerHTML=`<button class="big b-atk wide" onclick="bAttack()">⚔️ Atacar</button>${B.wild?'<button class="big b-cat" onclick="bCatch()">🔴 Atrapar</button>':''}<button class="big b-bag" onclick="bBag()">🎒 Mochila</button><button class="big b-sw" onclick="bSwitch(false)">🔁 Cambiar</button><button class="big b-run" onclick="bRun()">🏃 Huir</button>`;
+}
+const LV3=[['🟢','Fácil','#b9f5b0'],['🟡','Medio','#ffe89a'],['🔴','Difícil','#ffb3a3']];
+function bAttack(){
+ const a=act(),f=foe();setMsg('¿Qué pregunta quieres? 🟢 Fácil · 🟡 Medio · 🔴 Difícil (¡pega más fuerte!)');
+ $('#bpanel').innerHTML=moves(a).map((mv,i)=>{const e=eff(mv.t,type(f));const L=LV3[i];return `<button class="big mv" style="background:${L[2]}" onclick="bMove(${i})">${L[0]} ${L[1]}<small>${tIcon(mv.t)} ${mv.n} · 💪${mv.p} ${e>1?'💥x2':e<1?'🔻':''}</small></button>`}).join('')+'<button class="big b-run" onclick="menu()">⬅️ Volver</button>';
+}
+async function bMove(i){
+ const a=act(),f=foe(),mv=moves(a)[i];clearPanel();
+ const r=await ask(mv.tier);clearPanel();
+ if(r.ok){
+  anim('#pmon','lunge-r',400);await sleep(250);
+  const e=eff(mv.t,type(f)),d=dmg(a,f,mv,r.fast?1.5:1);
+  f.hp=Math.max(0,f.hp-d);sfx.hit();anim('#emon','hit',500);anim('#emon','hurt',600);renderB();
+  S.coins+=2;
+  await say(`¡${name(a)} usó ${mv.n}!`,1000);
+  if(r.fast)await say('⚡ ¡Súper rápido! ¡Golpe crítico!',1000);
+  if(e>1)await say('💥 ¡Es súper eficaz!',1000);else if(e<1)await say('😕 No es muy eficaz...',1000);
+  if(r.streak&&r.streak%5===0){S.coins+=10;sfx.coin();await say(`🔥 ¡${r.streak} respuestas seguidas! +10 🪙`,1300)}
+ }else await say(`¡Oh no! ${name(a)} falló el ataque.`,1200);
+ if(f.hp<=0)return foeFainted();
+ await foeTurn();
+}
+async function foeTurn(){
+ if(!B)return;const f=foe(),a=act(),ms=moves(f);
+ const rr=Math.random(),mv=rr<.5?ms[0]:rr<.85?ms[1]:ms[2];
+ await say(`${name(f)} usó ${mv.n}!`,900);
+ anim('#emon','lunge-l',400);await sleep(250);
+ const d=dmg(f,a,mv,DIFF[S.set.diff].mult);a.hp=Math.max(0,a.hp-d);sfx.hit();anim('#pmon','hit',500);anim('#pmon','hurt',600);renderB();
+ const e=eff(mv.t,type(a));if(e>1)await say('💥 ¡Es súper eficaz!',900);
+ if(a.hp<=0){$('#pmon').classList.add('faint');await say(`¡${name(a)} se debilitó! 😵`);$('#pmon').classList.remove('faint');return playerFainted()}
+ save();menu();
+}
+const xpGain=(f,tr)=>Math.floor(f.lvl*(6+tier(f)*1.5)*(tr?1.5:1));
+async function giveXp(m,g,loud){
+ m.xp+=g;if(loud){renderB();await say(`${name(m)} ganó ${g} puntos de experiencia ✨`,1000)}
+ while(m.lvl<100&&m.xp>=need(m.lvl)){
+  m.xp-=need(m.lvl);const old=maxHp(m);m.lvl++;m.hp=Math.min(maxHp(m),m.hp+maxHp(m)-old);sfx.lvl();renderB();
+  await say(`⬆️ ¡${name(m)} subió al nivel ${m.lvl}!`,1200);
+  if(D[m.id][3]&&m.lvl>=D[m.id][3])await evolve(m);
+ }
+ if(m.lvl>=100)m.xp=0;
+}
+function chooseEvo(m,opts){return new Promise(res=>{setMsg(`✨ ¿En quién quieres que evolucione ${name(m)}? 👇`);speak(`¿En quién quieres que evolucione ${name(m)}?`);
+ $('#bpanel').innerHTML=opts.map(id=>`<button class="big evb" onclick="EVR(${id})">${img(id,'',true)}<br>${tIcon(D[id][1])} ${D[id][0]}</button>`).join('');window.EVR=id=>{clearPanel();res(id)}})}
+async function evolve(m){
+ const from=name(m);let to=D[m.id][4];if(Array.isArray(to))to=(B&&$('#bpanel'))?await chooseEvo(m,to):pick(to);
+ const isAct=B&&act()===m;
+ await say(`¿Qué? ¡${from} está evolucionando! 🌟`,1500);
+ if(isAct)anim('#pmon','evo',1600);await sleep(1300);
+ const r=m.hp/maxHp(m);m.id=to;m.hp=Math.max(1,Math.round(maxHp(m)*r));caught(to);renderB();sfx.catch();
+ await say(`🎉 ¡${from} evolucionó en ${name(m)}!`,1800);
+}
+async function foeFainted(){
+ const f=foe(),a=act();$('#emon').classList.add('faint');
+ await say(`¡${name(f)} se debilitó!`,1000);
+ const g=xpGain(f,!!B.tr);await giveXp(a,g,true);
+ for(const m of S.team)if(m!==a&&m.hp>0)await giveXp(m,Math.floor(g/2),false);
+ S.coins+=f.lvl;
+ if(B.fi<B.foes.length-1){B.fi++;B.forceE=true;$('#emon').classList.remove('faint');renderB();await say(`${B.tr.e} ${B.tr.n} envía a ${name(foe())}!`);return menu()}
+ $('#emon').classList.remove('faint');
+ return win();
+}
+async function win(){
+ const tr=B.tr;
+ if(tr){
+  const bonus=tr.kind==='gym'?100+S.zone*20:30+S.zone*5;S.coins+=bonus;sfx.coin();
+  await say(`🏆 ¡Ganaste a ${tr.n}! +${bonus} 🪙`,1600);
+  if(tr.kind==='gym'){const z=zoneAt(tr.zone);if(!hasMedal(tr.zone))S.medals.push(tr.zone);S.maxZone=Math.min(MAXZ,Math.max(S.maxZone,tr.zone+1));sfx.lvl();
+   await say(`${z.m} ¡Conseguiste la ${z.mn}! ${z.m}`,2200);
+   healAll();
+   if(tr.zone===MAXZ)await say('👑 ¡COMPLETASTE LOS 50 NIVELES! ¡ERES EL GRAN CAMPEÓN! 🎉',3500);
+   else if(tr.zone===11)await say('🎊 ¡ERES CAMPEÓN DE LA LIGA POKÉMON! 🎊 ¡Te esperan más niveles hasta el 50!',3500);
+   else await say('➡️ ¡El camino a la siguiente zona está abierto! 🚩',1800);
+  }else S.tb[tr.key]=true;
+ }
+ endBattle();
+}
+async function playerFainted(){
+ if(S.team.some(m=>m.hp>0))return bSwitch(true);
+ await say('😴 ¡Tus Pokémon están muy cansados!',1500);
+ await say('🏥 Vamos al Centro Pokémon a descansar. ¡Entrena y vuelve a intentarlo!',2000);
+ healAll();P={x:6,y:2};FP=null;S.pos=P;endBattle();
+}
+function endBattle(){B=null;save();closeOv()}
+function bSwitch(forced){
+ const opts=S.team.map((m,i)=>({m,i})).filter(o=>o.m.hp>0&&o.i!==B.pi);
+ if(!opts.length){say('¡No tienes otro Pokémon para cambiar!').then(menu);clearPanel();return}
+ setMsg(forced?'¿Quién sale ahora? 👇':'¿A quién quieres sacar? 👇');
+ $('#bpanel').innerHTML=opts.map(o=>`<button class="big" onclick="bPick(${o.i},${forced})">${tIcon(type(o.m))} ${name(o.m)}<br><small>Nv ${o.m.lvl} ❤️ ${o.m.hp}/${maxHp(o.m)}</small></button>`).join('')+(forced?'':'<button class="big b-run" onclick="menu()">⬅️ Volver</button>');
+}
+async function bPick(i,forced){clearPanel();B.pi=i;renderB();await say(`¡Adelante, ${name(act())}!`,1000);if(forced)menu();else foeTurn()}
+function bBag(){
+ const it=['pocion','superpocion','caramelo'].filter(k=>S.it[k]>0);
+ setMsg('🎒 ¿Qué quieres usar?');
+ $('#bpanel').innerHTML=(it.length?it.map(k=>`<button class="big" onclick="bItem('${k}')">${ITEMDEF[k][0]} ${ITEMDEF[k][1]} <small>x${S.it[k]}</small></button>`).join(''):'<div class="q">🎒 ¡La mochila está vacía! Compra cosas en la 🏪</div>')+'<button class="big b-run" onclick="menu()">⬅️ Volver</button>';
+}
+async function bItem(k){
+ const a=act();clearPanel();
+ if(k==='caramelo'){S.it.caramelo--;await say(`🍬 ¡${name(a)} comió un Caramelo Raro!`);await giveXp(a,Math.max(0,need(a.lvl)-a.xp),false);renderB();return menu()}
+ if(a.hp>=maxHp(a)){await say(`¡${name(a)} ya está sano! 💪`);return menu()}
+ S.it[k]--;const h=k==='pocion'?Math.ceil(maxHp(a)*.5):maxHp(a);a.hp=Math.min(maxHp(a),a.hp+h);sfx.heal();renderB();
+ await say(`${ITEMDEF[k][0]} ¡${name(a)} recuperó vida!`);
+ foeTurn();
+}
+function bCatch(){
+ const bs=['poke','super','ultra','master'].filter(k=>S.it[k]>0);
+ if(!bs.length){clearPanel();say('¡No tienes Poké Balls! Cómpralas en la tienda 🏪').then(menu);return}
+ setMsg('¿Qué ball lanzas? 👇');
+ $('#bpanel').innerHTML=bs.map(k=>`<button class="big" onclick="bBall('${k}')">${ITEMDEF[k][0]} ${ITEMDEF[k][1]} <small>x${S.it[k]}</small></button>`).join('')+'<button class="big b-run" onclick="menu()">⬅️ Volver</button>';
+}
+async function bBall(k){
+ const f=foe(),a=act();clearPanel();
+ const r=await ask(0,'🎯 ¡Responde para lanzar la ball!');clearPanel();
+ if(!r.ok){await say('¡La ball no le dio! 😅',1200);return foeTurn()}
+ S.it[k]--;
+ const hpR=f.hp/maxHp(f),t=tier(f);
+ const leg=t===5?.35:t===4?.7:1;
+ const chance=k==='master'?1:Math.min(.97,(.35+.6*(1-hpR))*BALLM[k]*leg);
+ await say(`¡${S.name} lanzó una ${ITEMDEF[k][1]}!`,900);
+ $('#emon').innerHTML=`<div class="ballshake">${ITEMDEF[k][0]}</div>`;
+ const ok=Math.random()<chance;
+ for(let i=0;i<3;i++){beep(300+i*80,.08,'triangle');await sleep(500);if(!ok&&i===1&&Math.random()<.5)break}
+ if(ok){
+  sfx.catch();await say(`🎉 ¡Atrapaste a ${name(f)}!`,1800);
+  caught(f.id);const nm={id:f.id,lvl:f.lvl,xp:0,hp:f.hp};
+  if(S.team.length<6)S.team.push(nm);else{S.box.unshift(nm);await say('📦 Tu equipo está lleno. ¡Lo mandamos al PC!',1600)}
+  S.coins+=5;await giveXp(a,Math.floor(xpGain(f,false)/2),true);
+  endBattle();
+ }else{
+  B.forceE=true;renderB();await say('¡Oh no! ¡Se escapó de la ball! 😮',1300);foeTurn();
+ }
+}
+async function bRun(){clearPanel();if(B.tr){await say('¡No puedes huir de un combate de entrenador! 💪');return menu()}await say('🏃 ¡Escapaste sin problemas!',1000);endBattle()}
+
+/* ====== CONTROLES ====== */
+document.addEventListener('keydown',e=>{
+ const ov=$('#ov');
+ if(!ov.hidden){const n=parseInt(e.key,10);if(n>=1&&n<=4){const b=ov.querySelectorAll('.opt:not(:disabled)')[n-1];if(b)b.click()}return}
+ const m={ArrowUp:[0,-1],w:[0,-1],W:[0,-1],ArrowDown:[0,1],s:[0,1],S:[0,1],ArrowLeft:[-1,0],a:[-1,0],A:[-1,0],ArrowRight:[1,0],d:[1,0],D:[1,0]}[e.key];
+ if(m){e.preventDefault();const now=Date.now();if(now-lastMove<120)return;lastMove=now;move(...m)}
+});
+let padT=null;
+document.querySelectorAll('#pad button').forEach(b=>{
+ const d=b.dataset.d.split(',').map(Number);
+ const stop=()=>{clearInterval(padT);padT=null};
+ b.addEventListener('pointerdown',e=>{e.preventDefault();stop();move(...d);padT=setInterval(()=>move(...d),190)});
+ ['pointerup','pointerleave','pointercancel'].forEach(ev=>b.addEventListener(ev,stop));
+});
+document.addEventListener('contextmenu',e=>e.preventDefault());
+if(window.speechSynthesis){speechSynthesis.getVoices();speechSynthesis.onvoiceschanged=()=>{}}
+splash();
+</script>
+</body>
+</html>
