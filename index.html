@@ -386,13 +386,13 @@ function dedica(){musicStart();openOv(`<div class="sheet center"><div class="ded
 /* ====== PREGUNTAS DIDÁCTICAS ====== */
 function grp(f,n){let o='';for(let i=0;i<n;i++){o+=f;if(i%5===4&&i<n-1)o+=' '}return o}
 function numOpts(ans,spread,n){const s=new Set([ans]);let k=0;while(s.size<n&&k<300){k++;const sp=spread+(k>>4);const c=ans+R(-sp,sp);if(c>=0)s.add(c)}return shuffle([...s]).map(String)}
-const maxN=s=>s<=1?5:s<=3?10:s<=5?20:s<=7?30:s<=9?50:100;
+const maxN=s=>s<=1?5:s<=3?10:s<=5?15:s<=7?20:s<=9?30:s<=10?50:100;
 function qCount(s,n){const max=Math.min(20,5+s*3),k=R(1,max),f=pick(FR);return{t:'¿Cuántos hay?',say:'¿Cuántos hay? Cuéntalos',ico:grp(f,k),o:numOpts(k,2,n),a:String(k),ex:`Hay ${k}`}}
-function qAdd(s,n){const M=maxN(s),a=R(1,M-1),b=R(1,M-a),r=a+b,f=pick(FR);return{t:`${a} + ${b} = ❓`,say:`¿Cuánto es ${a} más ${b}?`,ico:r<=10?`${grp(f,a)} ➕ ${grp(f,b)}`:'',o:numOpts(r,Math.max(2,Math.round(r*.15)),n),a:String(r),ex:`${a} + ${b} = ${r}`}}
-function qSub(s,n){const M=Math.max(4,maxN(s)),a=R(2,M),b=R(1,a-1),r=a-b,f=pick(FR);return{t:`${a} − ${b} = ❓`,say:`¿Cuánto es ${a} menos ${b}?`,ico:a<=10?`${grp(f,r)}<span class="fade">${grp(f,b)}</span>`:'',o:numOpts(r,Math.max(2,Math.round(a*.15)),n),a:String(r),ex:`${a} − ${b} = ${r}`}}
-function qCmp(s){const M=maxN(s)*(s>=4?2:1);const a=R(0,M);let b;do{b=R(0,M)}while(b===a);const big=Math.random()<.5,f=pick(FR);const ans=big?Math.max(a,b):Math.min(a,b);return{t:big?'¿Cuál es MÁS GRANDE? 🐘':'¿Cuál es MÁS PEQUEÑO? 🐭',say:big?`¿Cuál es más grande, ${a} o ${b}?`:`¿Cuál es más pequeño, ${a} o ${b}?`,ico:(a<=10&&b<=10)?`${grp(f,a)||'∅'} &nbsp;|&nbsp; ${grp(f,b)||'∅'}`:'',o:[String(a),String(b)],a:String(ans),ex:`${Math.max(a,b)} es más grande que ${Math.min(a,b)}`}}
-function qSeq(s,n){const st=s<3?1:s<6?pick([1,2]):s<9?pick([2,5,10]):pick([3,4,5,10]);const x=R(0,s<3?5:20);const r=x+3*st;return{t:`${x}, ${x+st}, ${x+2*st}, ❓`,say:'¿Qué número sigue?',ico:'',o:numOpts(r,Math.max(2,st),n),a:String(r),ex:`Va de ${st} en ${st}: sigue ${r}`}}
-function qDouble(s,n){const k=R(2,s<7?10:25),f=pick(FR);return{t:`${k} + ${k} = ❓`,say:`¿Cuánto es ${k} más ${k}?`,ico:k<=5?`${grp(f,k)} ➕ ${grp(f,k)}`:'',o:numOpts(2*k,3,n),a:String(2*k),ex:`El doble de ${k} es ${2*k}`}}
+function qAdd(s,n){const M=maxN(s),a=R(1,M-1),b=R(1,M-a),r=a+b,f=pick(FR);return{t:`${a} + ${b} = ❓`,say:`¿Cuánto es ${a} más ${b}?`,ico:r<=20?`${grp(f,a)} ➕ ${grp(f,b)}`:'',o:numOpts(r,Math.max(2,Math.round(r*.15)),n),a:String(r),ex:`${a} + ${b} = ${r}`}}
+function qSub(s,n){const M=Math.max(4,maxN(s)),a=R(2,M),b=R(1,a-1),r=a-b,f=pick(FR);return{t:`${a} − ${b} = ❓`,say:`¿Cuánto es ${a} menos ${b}?`,ico:a<=20?`${grp(f,r)}<span class="fade">${grp(f,b)}</span>`:'',o:numOpts(r,Math.max(2,Math.round(a*.15)),n),a:String(r),ex:`${a} − ${b} = ${r}`}}
+function qCmp(s){const M=maxN(s);const a=R(0,M);let b;do{b=R(0,M)}while(b===a);const big=Math.random()<.5,f=pick(FR);const ans=big?Math.max(a,b):Math.min(a,b);return{t:big?'¿Cuál es MÁS GRANDE? 🐘':'¿Cuál es MÁS PEQUEÑO? 🐭',say:big?`¿Cuál es más grande, ${a} o ${b}?`:`¿Cuál es más pequeño, ${a} o ${b}?`,ico:(a<=10&&b<=10)?`${grp(f,a)||'∅'} &nbsp;|&nbsp; ${grp(f,b)||'∅'}`:'',o:[String(a),String(b)],a:String(ans),ex:`${Math.max(a,b)} es más grande que ${Math.min(a,b)}`}}
+function qSeq(s,n){const st=s<5?1:s<8?pick([1,2]):s<10?pick([2,5,10]):pick([3,4,5,10]);const x=R(0,s<5?5:15);const r=x+3*st;return{t:`${x}, ${x+st}, ${x+2*st}, ❓`,say:'¿Qué número sigue?',ico:'',o:numOpts(r,Math.max(2,st),n),a:String(r),ex:`Va de ${st} en ${st}: sigue ${r}`}}
+function qDouble(s,n){const k=R(1,s<8?5:10),f=pick(FR);return{t:`${k} + ${k} = ❓`,say:`¿Cuánto es ${k} más ${k}?`,ico:k<=5?`${grp(f,k)} ➕ ${grp(f,k)}`:'',o:numOpts(2*k,3,n),a:String(2*k),ex:`El doble de ${k} es ${2*k}`}}
 function qMiss(s,n){const M=maxN(s),a=R(1,M-2),c=R(a+1,M),r=c-a;return{t:`${a} + ❓ = ${c}`,say:`${a} más cuánto es igual a ${c}?`,ico:'',o:numOpts(r,3,n),a:String(r),ex:`${a} + ${r} = ${c}`}}
 function qMult(s,n){const tb=s<10?[2,5,10]:[2,3,4,5,10],a=pick(tb),b=R(1,10),r=a*b,f=pick(FR);return{t:`${b} × ${a} = ❓`,say:`¿Cuánto es ${b} por ${a}?`,ico:r<=20?Array.from({length:b},()=>f.repeat(a)).join(' '):'',o:numOpts(r,Math.max(3,a),n),a:String(r),ex:`${b} grupos de ${a} = ${r}`}}
 function letterOpts(ans,n){const s=new Set([ans]);while(s.size<n)s.add(pick(LETTERS));return shuffle([...s])}
@@ -407,23 +407,23 @@ function qWord(s){const[e,w]=pick(WORDS);const o=new Set([w]);while(o.size<3)o.a
 function qStory(s,n){const M=Math.min(maxN(s),20),f=pick(FR),add=Math.random()<.5;const a=R(2,M-1),b=add?R(1,M-a):R(1,a-1),r=add?a+b:a-b;return{t:add?'¿Cuántos tienes ahora?':'¿Cuántos te quedan?',say:add?`Tienes ${a}. Te dan ${b} más. ¿Cuántos tienes ahora?`:`Tienes ${a}. Regalas ${b}. ¿Cuántos te quedan?`,ico:`<div class="story">Tienes ${a} ${f}<br>${add?`➕ te dan ${b} más`:`➖ regalas ${b}`}</div>`,o:numOpts(r,2,n),a:String(r),ex:add?`${a} + ${b} = ${r}`:`${a} − ${b} = ${r}`}}
 let QH=[],QLAST=null;
 function makeQ(s){const q=S.set.q,c=[];
- if(q.num){if(s<=4)c.push(qCount);c.push(qAdd);if(s>=1)c.push(qSub,qBefore);if(s>=2)c.push(qCmp,qStory);if(s>=3)c.push(qSeq);if(s>=4)c.push(qEven);if(s>=5&&s<=9)c.push(qDouble);if(s>=6)c.push(qMiss);if(s>=8)c.push(qMult)}
- if(q.let){c.push(qFirst);if(s>=1)c.push(qWord);if(s>=4)c.push(qMissL)}
- if(q.tipo&&s>=1)c.push(qType);if(q.nom)c.push(qName);if(!c.length)c.push(qAdd);
- const fs=c.length>1?c.filter(f=>f!==QLAST):c;
- for(let k=0;k<20;k++){const f=pick(fs),x=f(s,s>=6?4:3),key=x.t+'|'+x.a+'|'+x.ico;if(!QH.includes(key)||k===19){QH.push(key);if(QH.length>60)QH.shift();QLAST=f;return x}}
+ if(q.num){if(s<=5)c.push(qCount);c.push(qAdd);if(s>=1)c.push(qBefore,qCmp);if(s>=2)c.push(qSub);if(s>=3)c.push(qStory);if(s>=4)c.push(qSeq);if(s>=5)c.push(qDouble);if(s>=7)c.push(qEven);if(s>=8)c.push(qMiss);if(s>=10)c.push(qMult)}
+ if(q.let){c.push(qFirst,qWord);if(s>=6)c.push(qMissL)}
+ if(q.tipo&&s>=3)c.push(qType);if(q.nom)c.push(qName);if(!c.length)c.push(qAdd);
+ const fs=c.length>1?c.filter(f=>f!==QLAST):c;const nOpt=s>=8?4:3;
+ for(let k=0;k<20;k++){const f=pick(fs),x=f(s,nOpt),key=x.t+'|'+x.a+'|'+x.ico;if(!QH.includes(key)||k===19){QH.push(key);if(QH.length>60)QH.shift();QLAST=f;return x}}
 }
 
 function ask(tierQ,label){return new Promise(res=>{
- const d=DIFF[S.set.diff];const s=Math.max(0,Math.min(12,Math.min(7,Math.floor(S.zone/4))+tierQ*3+d.off));
+ const d=DIFF[S.set.diff];S.adapt=S.adapt||0;const s=Math.max(0,Math.min(11,Math.round(Math.min(4,Math.floor(S.zone/8))+tierQ*2+d.off+S.adapt)));
  const q=makeQ(s);const pnl=$('#bpanel');window.QS=q.say;
  setMsg(label||'🤔 ¡Responde para atacar!');
  pnl.innerHTML=`<div class="q"><div class="qtext">${q.t} <button class="spk" onclick="speak(QS)">🔊</button></div>${q.ico?`<div class="qico">${q.ico}</div>`:''}<div class="opts">${q.o.map((o,i)=>`<button class="opt ${o.length>3?'sm':''}" data-i="${i}">${o}</button>`).join('')}</div></div>`;
  speak(q.say);const t0=Date.now();
  const bs=[...pnl.querySelectorAll('.opt')];
  bs.forEach(b=>b.onclick=()=>{bs.forEach(x=>x.disabled=true);const ok=q.o[+b.dataset.i]===q.a;
-  if(ok){b.classList.add('right');sfx.ok();S.st.ok++;S.st.streak++;S.st.best=Math.max(S.st.best,S.st.streak);setTimeout(()=>res({ok:true,fast:Date.now()-t0<7000,streak:S.st.streak}),650)}
-  else{b.classList.add('wrong');bs.forEach(x=>{if(q.o[+x.dataset.i]===q.a)x.classList.add('right')});sfx.bad();S.st.bad++;S.st.streak=0;pnl.querySelector('.qtext').innerHTML='💡 '+q.ex;Promise.all([speak('Casi. '+q.ex),sleep(2400)]).then(()=>res({ok:false}))}
+  if(ok){b.classList.add('right');sfx.ok();S.st.ok++;S.st.streak++;S.adapt=Math.min(1,(S.adapt||0)+.25);S.st.best=Math.max(S.st.best,S.st.streak);setTimeout(()=>res({ok:true,fast:Date.now()-t0<7000,streak:S.st.streak}),650)}
+  else{b.classList.add('wrong');bs.forEach(x=>{if(q.o[+x.dataset.i]===q.a)x.classList.add('right')});sfx.bad();S.st.bad++;S.st.streak=0;S.adapt=Math.max(-4,(S.adapt||0)-1);pnl.querySelector('.qtext').innerHTML='💡 '+q.ex;Promise.all([speak('Casi. '+q.ex),sleep(2400)]).then(()=>res({ok:false}))}
  });
 })}
 
